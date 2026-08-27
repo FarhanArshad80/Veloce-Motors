@@ -196,6 +196,13 @@ export default function DisplayCarList() {
     return sorted;
   }, [cars, query, activeFilter, sortBy]);
 
+  const isNarrowed = query.trim() !== "" || activeFilter !== "All";
+
+  function resetFilters() {
+    setQuery("");
+    setActiveFilter("All");
+  }
+
   function handleAddCar(car) {
     const duplicatedCar = {
       ...car,
@@ -227,7 +234,9 @@ export default function DisplayCarList() {
         <div className="inventory-toolbar">
           <div>
             <p className="inventory-count">
-              {cars.length} vehicles available
+              {isNarrowed
+                ? `Showing ${filteredCars.length} of ${cars.length} vehicles`
+                : `${cars.length} vehicles available`}
             </p>
 
             <h3 className="inventory-title">
@@ -299,6 +308,10 @@ export default function DisplayCarList() {
               <p>
                 Try another search term or category.
               </p>
+
+              <button className="reset-filters" onClick={resetFilters}>
+                Clear filters
+              </button>
             </div>
           )}
         </div>

@@ -745,6 +745,26 @@ button {
   font-size: 13px;
 }
 
+.reset-filters {
+  margin-top: 18px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.reset-filters:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 /* Car Details */
 
 .car-details {
