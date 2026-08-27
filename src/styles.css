@@ -441,6 +441,31 @@ button {
   font-size: 25px;
 }
 
+.toolbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sort-select {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 13px 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.sort-select:hover,
+.sort-select:focus {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 .search-wrapper {
   display: flex;
   align-items: center;
@@ -1232,9 +1257,18 @@ button {
     display: block;
   }
 
+  .toolbar-controls {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 18px;
+  }
+
   .search-wrapper {
     width: 100%;
-    margin-top: 18px;
+  }
+
+  .sort-select {
+    width: 100%;
   }
 
   .cars-grid {

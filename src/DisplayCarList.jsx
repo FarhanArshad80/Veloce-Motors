@@ -95,6 +95,22 @@ const defaultCars = [
   },
 ];
 
+const sortOptions = [
+  { value: "default", label: "Featured" },
+  { value: "price-asc", label: "Price: Low to High" },
+  { value: "price-desc", label: "Price: High to Low" },
+  { value: "year-desc", label: "Year: Newest first" },
+  { value: "name-asc", label: "Name: A–Z" },
+];
+
+// Prices are stored as display strings like "$22,000"
+function parsePrice(price) {
+  const digits = String(price).replace(/[^0-9.]/g, "");
+  const value = Number.parseFloat(digits);
+
+  return Number.isNaN(value) ? 0 : value;
+}
+
 function getInitialCars() {
   try {
     const savedCars = localStorage.getItem("veloce-cars");
@@ -126,6 +142,7 @@ export default function DisplayCarList() {
   const [selectedCar, setSelectedCar] = useState(null);
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
+  const [sortBy, setSortBy] = useState("default");
 
   useEffect(() => {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
@@ -137,7 +154,7 @@ export default function DisplayCarList() {
   ];
 
   const filteredCars = useMemo(() => {
-    return cars.filter((car) => {
+    const matching = cars.filter((car) => {
       const searchableText = `
         ${car.name}
         ${car.color}
@@ -156,7 +173,28 @@ export default function DisplayCarList() {
 
       return matchesSearch && matchesFilter;
     });
-  }, [cars, query, activeFilter]);
+
+    const sorted = [...matching];
+
+    switch (sortBy) {
+      case "price-asc":
+        sorted.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+        break;
+      case "price-desc":
+        sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+        break;
+      case "year-desc":
+        sorted.sort((a, b) => (b.year || 0) - (a.year || 0));
+        break;
+      case "name-asc":
+        sorted.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      default:
+        break;
+    }
+
+    return sorted;
+  }, [cars, query, activeFilter, sortBy]);
 
   function handleAddCar(car) {
     const duplicatedCar = {
@@ -197,16 +235,31 @@ export default function DisplayCarList() {
             </h3>
           </div>
 
-          <div className="search-wrapper">
-            <span>⌕</span>
+          <div className="toolbar-controls">
+            <div className="search-wrapper">
+              <span>⌕</span>
 
-            <input
-              type="text"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search vehicles..."
-              aria-label="Search vehicles"
-            />
+              <input
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search vehicles..."
+                aria-label="Search vehicles"
+              />
+            </div>
+
+            <select
+              className="sort-select"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              aria-label="Sort vehicles"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
