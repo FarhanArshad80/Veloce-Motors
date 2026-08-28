@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import DisplayCarList from "./DisplayCarList";
 import MaintenanceCard from "./MaintenanceCard";
 import "./styles.css";
@@ -24,7 +24,15 @@ const maintenanceTips = [
   },
 ];
 
+const navItems = [
+  { href: "#inventory", label: "Inventory" },
+  { href: "#maintenance", label: "Maintenance" },
+  { href: "#contact", label: "Contact" },
+];
+
 export default function App() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <main className="app">
       {/* Navbar */}
@@ -40,13 +48,53 @@ export default function App() {
           </div>
 
           <nav className="nav-links">
-            <a href="#inventory">Inventory</a>
-            <a href="#maintenance">Maintenance</a>
-            <a href="#contact">Contact</a>
+            {navItems.map((item) => (
+              <a key={item.href} href={item.href}>
+                {item.label}
+              </a>
+            ))}
           </nav>
 
           <button className="nav-button">Book a Test Drive</button>
+
+          <button
+            className={`nav-toggle ${menuOpen ? "is-open" : ""}`}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
         </div>
+
+        {/* Mobile menu — the desktop links and CTA are hidden below 680px */}
+        <nav
+          id="mobile-nav"
+          className={`mobile-nav ${menuOpen ? "is-open" : ""}`}
+          hidden={!menuOpen}
+        >
+          <div className="container mobile-nav-inner">
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+              >
+                {item.label}
+              </a>
+            ))}
+
+            <button
+              className="nav-button mobile-nav-cta"
+              onClick={() => setMenuOpen(false)}
+            >
+              Book a Test Drive
+            </button>
+          </div>
+        </nav>
       </header>
 
       {/* Hero */}
