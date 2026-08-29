@@ -148,10 +148,19 @@ export default function DisplayCarList() {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
   }, [cars]);
 
-  const categories = [
-    "All",
-    ...new Set(cars.map((car) => car.type || "Other")),
-  ];
+  const categories = useMemo(
+    () => ["All", ...new Set(cars.map((car) => car.type || "Other"))],
+    [cars]
+  );
+
+  // Removing the last vehicle of a category drops its chip from the filter
+  // row, but the filter itself would stay active — leaving an empty grid and
+  // no visible control to undo it. Fall back to "All" when that happens.
+  useEffect(() => {
+    if (!categories.includes(activeFilter)) {
+      setActiveFilter("All");
+    }
+  }, [categories, activeFilter]);
 
   const filteredCars = useMemo(() => {
     const matching = cars.filter((car) => {
