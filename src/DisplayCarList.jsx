@@ -162,8 +162,14 @@ export default function DisplayCarList() {
     }
   }, [categories, activeFilter]);
 
-  const filteredCars = useMemo(() => {
-    const matching = cars.filter((car) => {
+  // Search is applied before the category chips so each chip can report how
+  // many vehicles it would actually show for the current search term.
+  const searchMatches = useMemo(() => {
+    const term = query.trim().toLowerCase();
+
+    if (!term) return cars;
+
+    return cars.filter((car) => {
       const searchableText = `
         ${car.name}
         ${car.color}
@@ -172,16 +178,27 @@ export default function DisplayCarList() {
         ${car.description}
       `.toLowerCase();
 
-      const matchesSearch = searchableText.includes(
-        query.toLowerCase()
-      );
-
-      const matchesFilter =
-        activeFilter === "All" ||
-        (car.type || "Other") === activeFilter;
-
-      return matchesSearch && matchesFilter;
+      return searchableText.includes(term);
     });
+  }, [cars, query]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { All: searchMatches.length };
+
+    for (const car of searchMatches) {
+      const type = car.type || "Other";
+      counts[type] = (counts[type] || 0) + 1;
+    }
+
+    return counts;
+  }, [searchMatches]);
+
+  const filteredCars = useMemo(() => {
+    const matching = searchMatches.filter(
+      (car) =>
+        activeFilter === "All" ||
+        (car.type || "Other") === activeFilter
+    );
 
     const sorted = [...matching];
 
@@ -203,7 +220,7 @@ export default function DisplayCarList() {
     }
 
     return sorted;
-  }, [cars, query, activeFilter, sortBy]);
+  }, [searchMatches, activeFilter, sortBy]);
 
   const isNarrowed = query.trim() !== "" || activeFilter !== "All";
 
@@ -293,6 +310,9 @@ export default function DisplayCarList() {
               onClick={() => setActiveFilter(category)}
             >
               {category}
+              <span className="filter-count">
+                {categoryCounts[category] || 0}
+              </span>
             </button>
           ))}
         </div>
