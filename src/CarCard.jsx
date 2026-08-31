@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 const fallbackImages = {
   sedan:
@@ -118,6 +118,10 @@ export default function CarCard({
   const imageSource = car.image || getFallbackImage(car);
   const description = getDescription(car);
 
+  // Removing a vehicle is permanent — the inventory is written straight back
+  // to storage — so the button asks once before it acts.
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
+
   function handleImageError(event) {
     const fallback = getFallbackImage(car);
 
@@ -216,15 +220,39 @@ export default function CarCard({
             Duplicate
           </button>
 
-          <button
-            className="card-delete-button"
-            onClick={(event) => {
-              event.stopPropagation();
-              onDelete(car.id);
-            }}
-          >
-            Remove
-          </button>
+          {confirmingRemove ? (
+            <>
+              <button
+                className="card-confirm-button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDelete(car.id);
+                }}
+              >
+                Confirm
+              </button>
+
+              <button
+                className="card-delete-button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setConfirmingRemove(false);
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <button
+              className="card-delete-button"
+              onClick={(event) => {
+                event.stopPropagation();
+                setConfirmingRemove(true);
+              }}
+            >
+              Remove
+            </button>
+          )}
         </div>
       </div>
     </article>

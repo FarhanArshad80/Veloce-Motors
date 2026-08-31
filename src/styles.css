@@ -767,7 +767,8 @@ button {
 }
 
 .card-gold-button,
-.card-delete-button {
+.card-delete-button,
+.card-confirm-button {
   border: 1px solid transparent;
   border-radius: 2px;
   padding: 9px 11px;
@@ -798,6 +799,17 @@ button {
 .card-delete-button:hover {
   border-color: #9f5555;
   color: #e89191;
+}
+
+.card-confirm-button {
+  border-color: #9f5555;
+  background: #9f5555;
+  color: #fdf4f4;
+}
+
+.card-confirm-button:hover {
+  border-color: #b96464;
+  background: #b96464;
 }
 
 .details-sidebar {
