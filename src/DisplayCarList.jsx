@@ -111,6 +111,16 @@ function parsePrice(price) {
   return Number.isNaN(value) ? 0 : value;
 }
 
+function getInitialShortlist() {
+  try {
+    const saved = localStorage.getItem("veloce-shortlist");
+
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
 function getInitialCars() {
   try {
     const savedCars = localStorage.getItem("veloce-cars");
@@ -143,9 +153,29 @@ export default function DisplayCarList() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [sortBy, setSortBy] = useState("default");
+  const [shortlist, setShortlist] = useState(getInitialShortlist);
+  const [shortlistOnly, setShortlistOnly] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
+  }, [cars]);
+
+  useEffect(() => {
+    localStorage.setItem("veloce-shortlist", JSON.stringify(shortlist));
+  }, [shortlist]);
+
+  // A removed vehicle should not keep occupying a slot in the saved count,
+  // so drop ids that no longer match anything in the inventory.
+  useEffect(() => {
+    setShortlist((currentShortlist) => {
+      const remaining = currentShortlist.filter((id) =>
+        cars.some((car) => car.id === id)
+      );
+
+      return remaining.length === currentShortlist.length
+        ? currentShortlist
+        : remaining;
+    });
   }, [cars]);
 
   const categories = useMemo(
@@ -164,12 +194,20 @@ export default function DisplayCarList() {
 
   // Search is applied before the category chips so each chip can report how
   // many vehicles it would actually show for the current search term.
+  const savedCars = useMemo(
+    () =>
+      shortlistOnly
+        ? cars.filter((car) => shortlist.includes(car.id))
+        : cars,
+    [cars, shortlist, shortlistOnly]
+  );
+
   const searchMatches = useMemo(() => {
     const term = query.trim().toLowerCase();
 
-    if (!term) return cars;
+    if (!term) return savedCars;
 
-    return cars.filter((car) => {
+    return savedCars.filter((car) => {
       const searchableText = `
         ${car.name}
         ${car.color}
@@ -180,7 +218,7 @@ export default function DisplayCarList() {
 
       return searchableText.includes(term);
     });
-  }, [cars, query]);
+  }, [savedCars, query]);
 
   const categoryCounts = useMemo(() => {
     const counts = { All: searchMatches.length };
@@ -222,11 +260,21 @@ export default function DisplayCarList() {
     return sorted;
   }, [searchMatches, activeFilter, sortBy]);
 
-  const isNarrowed = query.trim() !== "" || activeFilter !== "All";
+  const isNarrowed =
+    query.trim() !== "" || activeFilter !== "All" || shortlistOnly;
 
   function resetFilters() {
     setQuery("");
     setActiveFilter("All");
+    setShortlistOnly(false);
+  }
+
+  function handleToggleShortlist(id) {
+    setShortlist((currentShortlist) =>
+      currentShortlist.includes(id)
+        ? currentShortlist.filter((savedId) => savedId !== id)
+        : [...currentShortlist, id]
+    );
   }
 
   function handleAddCar(car) {
@@ -283,6 +331,19 @@ export default function DisplayCarList() {
               />
             </div>
 
+            <button
+              className={
+                shortlistOnly
+                  ? "shortlist-toggle active"
+                  : "shortlist-toggle"
+              }
+              onClick={() => setShortlistOnly((only) => !only)}
+              aria-pressed={shortlistOnly}
+            >
+              ★ Saved
+              <span className="filter-count">{shortlist.length}</span>
+            </button>
+
             <select
               className="sort-select"
               value={sortBy}
@@ -324,9 +385,11 @@ export default function DisplayCarList() {
               car={car}
               index={index}
               selected={selectedCar?.id === car.id}
+              shortlisted={shortlist.includes(car.id)}
               onSelect={setSelectedCar}
               onAdd={handleAddCar}
               onDelete={handleDeleteCar}
+              onToggleShortlist={handleToggleShortlist}
             />
           ))}
 
@@ -335,7 +398,9 @@ export default function DisplayCarList() {
               <span>⌕</span>
               <h3>No vehicles found</h3>
               <p>
-                Try another search term or category.
+                {shortlistOnly && shortlist.length === 0
+                  ? "You have not saved any vehicles yet. Tap the star on a card to shortlist it."
+                  : "Try another search term or category."}
               </p>
 
               <button className="reset-filters" onClick={resetFilters}>

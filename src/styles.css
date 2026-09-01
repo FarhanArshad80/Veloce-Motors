@@ -539,6 +539,37 @@ button {
   color: var(--gold);
 }
 
+.shortlist-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 13px 12px;
+  background: var(--surface);
+  color: var(--silver);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease;
+}
+
+.shortlist-toggle:hover,
+.shortlist-toggle.active {
+  border-color: var(--gold);
+  background: var(--gold);
+  color: var(--primary-black);
+}
+
+.shortlist-toggle:hover .filter-count,
+.shortlist-toggle.active .filter-count {
+  background: rgba(0, 0, 0, 0.16);
+}
+
 .search-wrapper {
   display: flex;
   align-items: center;
@@ -698,6 +729,36 @@ button {
   bottom: 13px;
   color: var(--silver);
   font-size: 12px;
+}
+
+.shortlist-button {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--silver);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.shortlist-button:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  transform: scale(1.1);
+}
+
+.shortlist-button.saved {
+  border-color: var(--gold);
+  color: var(--gold);
 }
 
 .car-card-content {
@@ -1398,6 +1459,11 @@ button {
   }
 
   .sort-select {
+    width: 100%;
+  }
+
+  .shortlist-toggle {
+    justify-content: center;
     width: 100%;
   }
 

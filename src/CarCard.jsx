@@ -110,9 +110,11 @@ export default function CarCard({
   car,
   index = 0,
   selected,
+  shortlisted,
   onSelect,
   onAdd,
   onDelete,
+  onToggleShortlist,
 }) {
   const carType = getCarType(car);
   const imageSource = car.image || getFallbackImage(car);
@@ -174,6 +176,25 @@ export default function CarCard({
         <div className="car-year">
           {car.year || "2024"}
         </div>
+
+        <button
+          className={
+            shortlisted ? "shortlist-button saved" : "shortlist-button"
+          }
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleShortlist(car.id);
+          }}
+          aria-pressed={shortlisted}
+          aria-label={
+            shortlisted
+              ? `Remove ${car.name} from your shortlist`
+              : `Save ${car.name} to your shortlist`
+          }
+          title={shortlisted ? "Saved" : "Save for later"}
+        >
+          {shortlisted ? "★" : "☆"}
+        </button>
       </div>
 
       <div className="car-card-content">
