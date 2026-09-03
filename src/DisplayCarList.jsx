@@ -103,6 +103,21 @@ const sortOptions = [
   { value: "name-asc", label: "Name: A–Z" },
 ];
 
+// Budget is the first question most buyers answer, and it is the one the
+// category chips cannot express. Bands are fixed rather than derived from
+// the inventory so the choices stay in the same place as stock moves.
+const priceBands = [
+  { value: "any", label: "Any price", test: () => true },
+  { value: "under-25", label: "Under $25,000", test: (p) => p < 25000 },
+  { value: "25-50", label: "$25,000 – $50,000", test: (p) => p >= 25000 && p < 50000 },
+  { value: "50-100", label: "$50,000 – $100,000", test: (p) => p >= 50000 && p < 100000 },
+  { value: "over-100", label: "Over $100,000", test: (p) => p >= 100000 },
+];
+
+function findBand(value) {
+  return priceBands.find((band) => band.value === value) || priceBands[0];
+}
+
 // Prices are stored as display strings like "$22,000"
 function parsePrice(price) {
   const digits = String(price).replace(/[^0-9.]/g, "");
@@ -153,6 +168,7 @@ export default function DisplayCarList() {
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
   const [sortBy, setSortBy] = useState("default");
+  const [priceBand, setPriceBand] = useState("any");
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(false);
 
@@ -220,19 +236,41 @@ export default function DisplayCarList() {
     });
   }, [savedCars, query]);
 
-  const categoryCounts = useMemo(() => {
-    const counts = { All: searchMatches.length };
+  // Counted from the search results rather than the band's own output, so
+  // each option can say what picking it would actually leave on screen.
+  const bandCounts = useMemo(() => {
+    const counts = {};
 
-    for (const car of searchMatches) {
-      const type = car.type || "Other";
-      counts[type] = (counts[type] || 0) + 1;
+    for (const band of priceBands) {
+      counts[band.value] = searchMatches.filter((car) =>
+        band.test(parsePrice(car.price))
+      ).length;
     }
 
     return counts;
   }, [searchMatches]);
 
+  const priceMatches = useMemo(() => {
+    if (priceBand === "any") return searchMatches;
+
+    const { test } = findBand(priceBand);
+
+    return searchMatches.filter((car) => test(parsePrice(car.price)));
+  }, [searchMatches, priceBand]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { All: priceMatches.length };
+
+    for (const car of priceMatches) {
+      const type = car.type || "Other";
+      counts[type] = (counts[type] || 0) + 1;
+    }
+
+    return counts;
+  }, [priceMatches]);
+
   const filteredCars = useMemo(() => {
-    const matching = searchMatches.filter(
+    const matching = priceMatches.filter(
       (car) =>
         activeFilter === "All" ||
         (car.type || "Other") === activeFilter
@@ -258,15 +296,19 @@ export default function DisplayCarList() {
     }
 
     return sorted;
-  }, [searchMatches, activeFilter, sortBy]);
+  }, [priceMatches, activeFilter, sortBy]);
 
   const isNarrowed =
-    query.trim() !== "" || activeFilter !== "All" || shortlistOnly;
+    query.trim() !== "" ||
+    activeFilter !== "All" ||
+    shortlistOnly ||
+    priceBand !== "any";
 
   function resetFilters() {
     setQuery("");
     setActiveFilter("All");
     setShortlistOnly(false);
+    setPriceBand("any");
   }
 
   function handleToggleShortlist(id) {
@@ -346,6 +388,20 @@ export default function DisplayCarList() {
 
             <select
               className="sort-select"
+              value={priceBand}
+              onChange={(event) => setPriceBand(event.target.value)}
+              aria-label="Filter by price"
+            >
+              {priceBands.map((band) => (
+                <option key={band.value} value={band.value}>
+                  {band.label}
+                  {band.value === "any" ? "" : ` (${bandCounts[band.value] || 0})`}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="sort-select"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
               aria-label="Sort vehicles"
@@ -400,6 +456,8 @@ export default function DisplayCarList() {
               <p>
                 {shortlistOnly && shortlist.length === 0
                   ? "You have not saved any vehicles yet. Tap the star on a card to shortlist it."
+                  : priceBand !== "any"
+                  ? `Nothing in the ${findBand(priceBand).label.toLowerCase()} band matches. Try a wider budget.`
                   : "Try another search term or category."}
               </p>
 
