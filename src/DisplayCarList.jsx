@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
+import CompareTable from "./CompareTable";
 
 const defaultCars = [
   {
@@ -171,6 +172,7 @@ export default function DisplayCarList() {
   const [priceBand, setPriceBand] = useState("any");
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(false);
+  const [comparing, setComparing] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
@@ -193,6 +195,21 @@ export default function DisplayCarList() {
         : remaining;
     });
   }, [cars]);
+
+  // Comparison follows the shortlist, in inventory order so the columns do
+  // not reshuffle each time a star is toggled.
+  const comparedCars = useMemo(
+    () => cars.filter((car) => shortlist.includes(car.id)),
+    [cars, shortlist]
+  );
+
+  // One vehicle on its own is not a comparison; drop out of the panel
+  // rather than leaving a single lonely column on screen.
+  useEffect(() => {
+    if (comparing && comparedCars.length < 2) {
+      setComparing(false);
+    }
+  }, [comparing, comparedCars]);
 
   const categories = useMemo(
     () => ["All", ...new Set(cars.map((car) => car.type || "Other"))],
@@ -386,6 +403,22 @@ export default function DisplayCarList() {
               <span className="filter-count">{shortlist.length}</span>
             </button>
 
+            <button
+              className={
+                comparing ? "shortlist-toggle active" : "shortlist-toggle"
+              }
+              onClick={() => setComparing((open) => !open)}
+              disabled={comparedCars.length < 2}
+              aria-pressed={comparing}
+              title={
+                comparedCars.length < 2
+                  ? "Save at least two vehicles to compare them"
+                  : "Compare the saved vehicles side by side"
+              }
+            >
+              ⇄ Compare
+            </button>
+
             <select
               className="sort-select"
               value={priceBand}
@@ -433,6 +466,14 @@ export default function DisplayCarList() {
             </button>
           ))}
         </div>
+
+        {comparing && comparedCars.length >= 2 && (
+          <CompareTable
+            cars={comparedCars}
+            onClose={() => setComparing(false)}
+            onRemove={handleToggleShortlist}
+          />
+        )}
 
         <div className="cars-grid">
           {filteredCars.map((car, index) => (
