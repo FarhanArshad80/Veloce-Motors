@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
+import { parsePrice } from "./pricing";
 
 const defaultCars = [
   {
@@ -117,14 +118,6 @@ const priceBands = [
 
 function findBand(value) {
   return priceBands.find((band) => band.value === value) || priceBands[0];
-}
-
-// Prices are stored as display strings like "$22,000"
-function parsePrice(price) {
-  const digits = String(price).replace(/[^0-9.]/g, "");
-  const value = Number.parseFloat(digits);
-
-  return Number.isNaN(value) ? 0 : value;
 }
 
 function getInitialShortlist() {

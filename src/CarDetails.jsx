@@ -1,4 +1,5 @@
 import React from "react";
+import FinanceCalculator from "./FinanceCalculator";
 
 export default function CarDetails({ car }) {
   function handleImageError(event) {
@@ -77,6 +78,8 @@ export default function CarDetails({ car }) {
           {car.description ||
             "A carefully selected premium vehicle offering comfort, quality, style and dependable performance."}
         </p>
+
+        <FinanceCalculator car={car} />
 
         <div className="details-specifications">
           <div>
