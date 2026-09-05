@@ -120,6 +120,43 @@ function findBand(value) {
   return priceBands.find((band) => band.value === value) || priceBands[0];
 }
 
+// A narrowed inventory is a thing people send to each other — "here, the
+// SUVs under $50k" — and a thing they expect the back button to return them
+// to. Keeping the filters in the query string makes both work, and costs a
+// reload nothing: the state simply starts where the URL says.
+//
+// Every value is validated on the way in. A hand-edited or stale link should
+// land on the full inventory rather than an empty grid with no explanation.
+function getInitialFilters() {
+  let params;
+
+  try {
+    params = new URLSearchParams(window.location.search);
+  } catch {
+    return {
+      query: "",
+      activeFilter: "All",
+      sortBy: "default",
+      priceBand: "any",
+      shortlistOnly: false,
+    };
+  }
+
+  const sort = params.get("sort");
+  const band = params.get("price");
+
+  return {
+    query: params.get("q") || "",
+    // Categories come from the inventory, which is not loaded yet, so this
+    // one is checked later by the effect that already guards against a
+    // filter for a category with nothing left in it.
+    activeFilter: params.get("type") || "All",
+    sortBy: sortOptions.some((option) => option.value === sort) ? sort : "default",
+    priceBand: priceBands.some((option) => option.value === band) ? band : "any",
+    shortlistOnly: params.get("saved") === "1",
+  };
+}
+
 function getInitialShortlist() {
   try {
     const saved = localStorage.getItem("veloce-shortlist");
@@ -157,15 +194,18 @@ function getInitialCars() {
 }
 
 export default function DisplayCarList() {
+  const initialFilters = useMemo(getInitialFilters, []);
+
   const [cars, setCars] = useState(getInitialCars);
   const [selectedCar, setSelectedCar] = useState(null);
-  const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [sortBy, setSortBy] = useState("default");
-  const [priceBand, setPriceBand] = useState("any");
+  const [query, setQuery] = useState(initialFilters.query);
+  const [activeFilter, setActiveFilter] = useState(initialFilters.activeFilter);
+  const [sortBy, setSortBy] = useState(initialFilters.sortBy);
+  const [priceBand, setPriceBand] = useState(initialFilters.priceBand);
   const [shortlist, setShortlist] = useState(getInitialShortlist);
-  const [shortlistOnly, setShortlistOnly] = useState(false);
+  const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
   const [comparing, setComparing] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
@@ -174,6 +214,43 @@ export default function DisplayCarList() {
   useEffect(() => {
     localStorage.setItem("veloce-shortlist", JSON.stringify(shortlist));
   }, [shortlist]);
+
+  // Writes the current filters back to the address bar. replaceState rather
+  // than pushState: typing six letters into the search box is one act of
+  // narrowing down, not six entries to press Back through. Defaults are
+  // dropped instead of spelled out, so an unfiltered page keeps a clean URL,
+  // and the hash is carried through because the page navigates by #anchor.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const apply = (key, value, fallback) => {
+      if (value === fallback) params.delete(key);
+      else params.set(key, value);
+    };
+
+    apply("q", query.trim(), "");
+    apply("type", activeFilter, "All");
+    apply("price", priceBand, "any");
+    apply("sort", sortBy, "default");
+    apply("saved", shortlistOnly ? "1" : "", "");
+
+    const search = params.toString();
+    const { pathname, hash } = window.location;
+    const next = `${pathname}${search ? `?${search}` : ""}${hash}`;
+
+    if (next !== `${pathname}${window.location.search}${hash}`) {
+      window.history.replaceState(null, "", next);
+    }
+  }, [query, activeFilter, priceBand, sortBy, shortlistOnly]);
+
+  // "Copied" is a confirmation, not a state worth holding on to.
+  useEffect(() => {
+    if (!copiedLink) return undefined;
+
+    const timer = setTimeout(() => setCopiedLink(false), 2000);
+
+    return () => clearTimeout(timer);
+  }, [copiedLink]);
 
   // A removed vehicle should not keep occupying a slot in the saved count,
   // so drop ids that no longer match anything in the inventory.
@@ -314,6 +391,18 @@ export default function DisplayCarList() {
     shortlistOnly ||
     priceBand !== "any";
 
+  // The clipboard can be refused — an insecure context, a denied permission.
+  // The URL is in the address bar either way, so that case says so rather
+  // than reporting a failure.
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+    } catch {
+      window.prompt("Copy this link to share these results:", window.location.href);
+    }
+  }
+
   function resetFilters() {
     setQuery("");
     setActiveFilter("All");
@@ -410,6 +499,19 @@ export default function DisplayCarList() {
               }
             >
               ⇄ Compare
+            </button>
+
+            <button
+              className={copiedLink ? "shortlist-toggle active" : "shortlist-toggle"}
+              onClick={copyLink}
+              disabled={!isNarrowed}
+              title={
+                isNarrowed
+                  ? "Copy a link to these results"
+                  : "Narrow the inventory to get a link worth sharing"
+              }
+            >
+              {copiedLink ? "✓ Copied" : "⇱ Share"}
             </button>
 
             <select
