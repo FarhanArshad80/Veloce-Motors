@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import DisplayCarList from "./DisplayCarList";
 import MaintenanceCard from "./MaintenanceCard";
+import TestDriveForm from "./TestDriveForm";
 import "./styles.css";
 
 const maintenanceTips = [
@@ -32,6 +33,7 @@ const navItems = [
 
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [booking, setBooking] = useState(false);
 
   return (
     <main className="app">
@@ -55,7 +57,9 @@ export default function App() {
             ))}
           </nav>
 
-          <button className="nav-button">Book a Test Drive</button>
+          <button className="nav-button" onClick={() => setBooking(true)}>
+            Book a Test Drive
+          </button>
 
           <button
             className={`nav-toggle ${menuOpen ? "is-open" : ""}`}
@@ -89,7 +93,10 @@ export default function App() {
 
             <button
               className="nav-button mobile-nav-cta"
-              onClick={() => setMenuOpen(false)}
+              onClick={() => {
+                setMenuOpen(false);
+                setBooking(true);
+              }}
             >
               Book a Test Drive
             </button>
@@ -205,13 +212,8 @@ export default function App() {
             <h2>Your next chapter starts here.</h2>
           </div>
 
-          <button
-            className="gold-button"
-            onClick={() =>
-              window.alert("Our team will contact you shortly.")
-            }
-          >
-            Contact our team
+          <button className="gold-button" onClick={() => setBooking(true)}>
+            Book a test drive
             <span>→</span>
           </button>
         </div>
@@ -238,6 +240,8 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {booking && <TestDriveForm onClose={() => setBooking(false)} />}
     </main>
   );
 }

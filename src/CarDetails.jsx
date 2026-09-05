@@ -1,17 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import FinanceCalculator from "./FinanceCalculator";
+import TestDriveForm from "./TestDriveForm";
 
 export default function CarDetails({ car }) {
+  const [booking, setBooking] = useState(false);
+
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
     event.currentTarget.parentElement.classList.add(
       "details-image-fallback"
-    );
-  }
-
-  function handleInquiry() {
-    window.alert(
-      `Thank you for your interest in the ${car.name}. Our team will contact you shortly.`
     );
   }
 
@@ -105,11 +102,15 @@ export default function CarDetails({ car }) {
 
         <button
           className="details-action-button"
-          onClick={handleInquiry}
+          onClick={() => setBooking(true)}
         >
-          Request information
+          Book a test drive
           <span>→</span>
         </button>
+
+        {booking && (
+          <TestDriveForm car={car} onClose={() => setBooking(false)} />
+        )}
       </div>
     </article>
   );
