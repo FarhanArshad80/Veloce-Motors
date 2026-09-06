@@ -127,6 +127,10 @@ const mileageBands = [
   { value: "under-50", label: "Under 50,000 mi", test: (m) => m < 50000 },
 ];
 
+// Long enough to read the banner and reach for it, short enough that it is
+// not still hanging over the page once attention has moved on.
+const UNDO_MS = 8000;
+
 function findBand(value) {
   return priceBands.find((band) => band.value === value) || priceBands[0];
 }
@@ -225,6 +229,10 @@ export default function DisplayCarList() {
   const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
   const [comparing, setComparing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  // The vehicle most recently removed, held with where it sat and whether it
+  // was starred, so putting it back restores the listing rather than
+  // appending a stranger to the end of the inventory.
+  const [deleted, setDeleted] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
@@ -271,6 +279,14 @@ export default function DisplayCarList() {
 
     return () => clearTimeout(timer);
   }, [copiedLink]);
+
+  useEffect(() => {
+    if (!deleted) return undefined;
+
+    const timer = setTimeout(() => setDeleted(null), UNDO_MS);
+
+    return () => clearTimeout(timer);
+  }, [deleted]);
 
   // A removed vehicle should not keep occupying a slot in the saved count,
   // so drop ids that no longer match anything in the inventory.
@@ -513,6 +529,15 @@ export default function DisplayCarList() {
   }
 
   function handleDeleteCar(id) {
+    const index = cars.findIndex((car) => car.id === id);
+
+    if (index === -1) return;
+
+    // Read out here rather than inside the updater: the shortlist prune
+    // effect strips the id the moment the car leaves the inventory, so by
+    // the time anyone asks whether it was starred the answer is already no.
+    setDeleted({ car: cars[index], index, wasSaved: shortlist.includes(id) });
+
     setCars((currentCars) =>
       currentCars.filter((car) => car.id !== id)
     );
@@ -520,6 +545,34 @@ export default function DisplayCarList() {
     setSelectedCar((currentCar) =>
       currentCar?.id === id ? null : currentCar
     );
+  }
+
+  function undoDelete() {
+    if (!deleted) return;
+
+    const { car, index, wasSaved } = deleted;
+
+    setCars((currentCars) => {
+      if (currentCars.some((existing) => existing.id === car.id)) return currentCars;
+
+      const next = [...currentCars];
+
+      // The inventory can have shrunk further while the banner was up, so
+      // the old index is a preference rather than a promise.
+      next.splice(Math.min(index, next.length), 0, car);
+
+      return next;
+    });
+
+    if (wasSaved) {
+      setShortlist((currentShortlist) =>
+        currentShortlist.includes(car.id)
+          ? currentShortlist
+          : [...currentShortlist, car.id]
+      );
+    }
+
+    setDeleted(null);
   }
 
   return (
@@ -725,6 +778,27 @@ export default function DisplayCarList() {
           )}
         </div>
       </div>
+
+      {/* Anchored to the viewport rather than the grid: the card it came
+          from can be well off screen by the time this appears, and an undo
+          nobody scrolls to is not an undo. */}
+      {deleted && (
+        <div className="undo-bar" role="status">
+          <span>
+            Removed <strong>{deleted.car.name}</strong>
+          </span>
+
+          <button onClick={undoDelete}>Undo</button>
+
+          <button
+            className="undo-bar-close"
+            onClick={() => setDeleted(null)}
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <aside className="details-sidebar">
         {selectedCar ? (

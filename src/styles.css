@@ -704,6 +704,59 @@ button {
 
 .active-filter-clear:hover { opacity: 1; color: var(--gold); }
 
+/* Pinned to the viewport, not to the grid. The card that was deleted may be
+   hundreds of pixels up the page by the time this shows, and an undo nobody
+   scrolls to is not an undo. */
+.undo-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 26px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transform: translateX(-50%);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 18px;
+  background: var(--surface);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  color: var(--silver);
+  font-size: 12px;
+  animation: undo-bar-in 0.22s ease-out;
+}
+
+.undo-bar strong { color: #fff; font-weight: 500; }
+
+.undo-bar button {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.undo-bar-close {
+  color: var(--silver) !important;
+  font-size: 16px !important;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+.undo-bar-close:hover { opacity: 1; }
+
+@keyframes undo-bar-in {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .undo-bar { animation: none; }
+}
+
 .cars-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
