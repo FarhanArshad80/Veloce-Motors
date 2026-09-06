@@ -642,6 +642,68 @@ button {
   background: rgba(0, 0, 0, 0.16);
 }
 
+/* Deliberately quieter than the category chips above. These are a readout of
+   what has already been chosen, not another rank of things to choose. */
+.active-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -12px 0 24px;
+}
+
+.active-filters-label {
+  color: var(--silver);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.active-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: transparent;
+  color: var(--silver);
+  cursor: pointer;
+  font-size: 11px;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.active-filter span {
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.6;
+}
+
+/* The gold on hover is the same gold the chips use when active — hovering a
+   pill is aiming at the filter it names, so it should light up the same way
+   the thing it undoes did. */
+.active-filter:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.active-filter:hover span { opacity: 1; }
+
+.active-filter-clear {
+  border: none;
+  background: none;
+  padding: 5px 4px;
+  color: var(--silver);
+  cursor: pointer;
+  font-size: 11px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  opacity: 0.7;
+}
+
+.active-filter-clear:hover { opacity: 1; color: var(--gold); }
+
 .cars-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

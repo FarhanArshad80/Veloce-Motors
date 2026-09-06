@@ -428,6 +428,40 @@ export default function DisplayCarList() {
     return sorted;
   }, [mileageMatches, activeFilter, sortBy]);
 
+  // Every narrowing currently in force, each carrying the means to undo just
+  // itself. The controls are spread across a search box, three selects and a
+  // chip row, so "why am I only seeing two cars" was a question you answered
+  // by checking five places — and the only way back was Clear filters, which
+  // threw away the four you wanted along with the one you did not.
+  const activeFilters = useMemo(() => {
+    const term = query.trim();
+    const list = [];
+
+    if (term) list.push({ key: "q", label: `“${term}”`, clear: () => setQuery("") });
+
+    if (activeFilter !== "All") {
+      list.push({ key: "type", label: activeFilter, clear: () => setActiveFilter("All") });
+    }
+
+    if (priceBand !== "any") {
+      list.push({ key: "price", label: findBand(priceBand).label, clear: () => setPriceBand("any") });
+    }
+
+    if (mileageBand !== "any") {
+      list.push({
+        key: "miles",
+        label: findMileageBand(mileageBand).label,
+        clear: () => setMileageBand("any"),
+      });
+    }
+
+    if (shortlistOnly) {
+      list.push({ key: "saved", label: "Saved only", clear: () => setShortlistOnly(false) });
+    }
+
+    return list;
+  }, [query, activeFilter, priceBand, mileageBand, shortlistOnly]);
+
   const isNarrowed =
     query.trim() !== "" ||
     activeFilter !== "All" ||
@@ -620,6 +654,32 @@ export default function DisplayCarList() {
             </button>
           ))}
         </div>
+
+        {/* Below the category chips rather than above them: it describes
+            what the controls above have already done. */}
+        {activeFilters.length > 0 && (
+          <div className="active-filters">
+            <span className="active-filters-label">Filtering by</span>
+
+            {activeFilters.map((filter) => (
+              <button
+                key={filter.key}
+                className="active-filter"
+                onClick={filter.clear}
+                aria-label={`Remove filter: ${filter.label}`}
+              >
+                {filter.label}
+                <span aria-hidden="true">×</span>
+              </button>
+            ))}
+
+            {activeFilters.length > 1 && (
+              <button className="active-filter-clear" onClick={resetFilters}>
+                Clear all
+              </button>
+            )}
+          </div>
+        )}
 
         {comparing && comparedCars.length >= 2 && (
           <CompareTable
