@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
-import { parsePrice } from "./pricing";
+import { parseMileage, parsePrice } from "./pricing";
 
 const defaultCars = [
   {
@@ -116,8 +116,23 @@ const priceBands = [
   { value: "over-100", label: "Over $100,000", test: (p) => p >= 100000 },
 ];
 
+// The second question, and the one price cannot answer: a cheap car with
+// 90,000 miles on it and an expensive one with 4,000 are different purchases
+// entirely. Bands are open-ended upwards — nobody shops for "between 25,000
+// and 50,000 miles", they shop for "no more than".
+const mileageBands = [
+  { value: "any", label: "Any mileage", test: () => true },
+  { value: "under-10", label: "Under 10,000 mi", test: (m) => m < 10000 },
+  { value: "under-25", label: "Under 25,000 mi", test: (m) => m < 25000 },
+  { value: "under-50", label: "Under 50,000 mi", test: (m) => m < 50000 },
+];
+
 function findBand(value) {
   return priceBands.find((band) => band.value === value) || priceBands[0];
+}
+
+function findMileageBand(value) {
+  return mileageBands.find((band) => band.value === value) || mileageBands[0];
 }
 
 // A narrowed inventory is a thing people send to each other — "here, the
@@ -138,12 +153,14 @@ function getInitialFilters() {
       activeFilter: "All",
       sortBy: "default",
       priceBand: "any",
+      mileageBand: "any",
       shortlistOnly: false,
     };
   }
 
   const sort = params.get("sort");
   const band = params.get("price");
+  const miles = params.get("miles");
 
   return {
     query: params.get("q") || "",
@@ -153,6 +170,7 @@ function getInitialFilters() {
     activeFilter: params.get("type") || "All",
     sortBy: sortOptions.some((option) => option.value === sort) ? sort : "default",
     priceBand: priceBands.some((option) => option.value === band) ? band : "any",
+    mileageBand: mileageBands.some((option) => option.value === miles) ? miles : "any",
     shortlistOnly: params.get("saved") === "1",
   };
 }
@@ -202,6 +220,7 @@ export default function DisplayCarList() {
   const [activeFilter, setActiveFilter] = useState(initialFilters.activeFilter);
   const [sortBy, setSortBy] = useState(initialFilters.sortBy);
   const [priceBand, setPriceBand] = useState(initialFilters.priceBand);
+  const [mileageBand, setMileageBand] = useState(initialFilters.mileageBand);
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
   const [comparing, setComparing] = useState(false);
@@ -231,6 +250,7 @@ export default function DisplayCarList() {
     apply("q", query.trim(), "");
     apply("type", activeFilter, "All");
     apply("price", priceBand, "any");
+    apply("miles", mileageBand, "any");
     apply("sort", sortBy, "default");
     apply("saved", shortlistOnly ? "1" : "", "");
 
@@ -241,7 +261,7 @@ export default function DisplayCarList() {
     if (next !== `${pathname}${window.location.search}${hash}`) {
       window.history.replaceState(null, "", next);
     }
-  }, [query, activeFilter, priceBand, sortBy, shortlistOnly]);
+  }, [query, activeFilter, priceBand, mileageBand, sortBy, shortlistOnly]);
 
   // "Copied" is a confirmation, not a state worth holding on to.
   useEffect(() => {
@@ -345,19 +365,42 @@ export default function DisplayCarList() {
     return searchMatches.filter((car) => test(parsePrice(car.price)));
   }, [searchMatches, priceBand]);
 
-  const categoryCounts = useMemo(() => {
-    const counts = { All: priceMatches.length };
+  // Counted after the budget has been applied, for the same reason the price
+  // counts are: an option should say what picking it would leave, not what
+  // it would leave in some other version of the page.
+  const mileageCounts = useMemo(() => {
+    const counts = {};
 
-    for (const car of priceMatches) {
-      const type = car.type || "Other";
-      counts[type] = (counts[type] || 0) + 1;
+    for (const band of mileageBands) {
+      counts[band.value] = priceMatches.filter((car) =>
+        band.test(parseMileage(car.mileage))
+      ).length;
     }
 
     return counts;
   }, [priceMatches]);
 
+  const mileageMatches = useMemo(() => {
+    if (mileageBand === "any") return priceMatches;
+
+    const { test } = findMileageBand(mileageBand);
+
+    return priceMatches.filter((car) => test(parseMileage(car.mileage)));
+  }, [priceMatches, mileageBand]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { All: mileageMatches.length };
+
+    for (const car of mileageMatches) {
+      const type = car.type || "Other";
+      counts[type] = (counts[type] || 0) + 1;
+    }
+
+    return counts;
+  }, [mileageMatches]);
+
   const filteredCars = useMemo(() => {
-    const matching = priceMatches.filter(
+    const matching = mileageMatches.filter(
       (car) =>
         activeFilter === "All" ||
         (car.type || "Other") === activeFilter
@@ -383,13 +426,14 @@ export default function DisplayCarList() {
     }
 
     return sorted;
-  }, [priceMatches, activeFilter, sortBy]);
+  }, [mileageMatches, activeFilter, sortBy]);
 
   const isNarrowed =
     query.trim() !== "" ||
     activeFilter !== "All" ||
     shortlistOnly ||
-    priceBand !== "any";
+    priceBand !== "any" ||
+    mileageBand !== "any";
 
   // The clipboard can be refused — an insecure context, a denied permission.
   // The URL is in the address bar either way, so that case says so rather
@@ -408,6 +452,7 @@ export default function DisplayCarList() {
     setActiveFilter("All");
     setShortlistOnly(false);
     setPriceBand("any");
+    setMileageBand("any");
   }
 
   function handleToggleShortlist(id) {
@@ -530,6 +575,20 @@ export default function DisplayCarList() {
 
             <select
               className="sort-select"
+              value={mileageBand}
+              onChange={(event) => setMileageBand(event.target.value)}
+              aria-label="Filter by mileage"
+            >
+              {mileageBands.map((band) => (
+                <option key={band.value} value={band.value}>
+                  {band.label}
+                  {band.value === "any" ? "" : ` (${mileageCounts[band.value] || 0})`}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="sort-select"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
               aria-label="Sort vehicles"
@@ -592,6 +651,8 @@ export default function DisplayCarList() {
               <p>
                 {shortlistOnly && shortlist.length === 0
                   ? "You have not saved any vehicles yet. Tap the star on a card to shortlist it."
+                  : mileageBand !== "any"
+                  ? `Nothing ${findMileageBand(mileageBand).label.toLowerCase()} matches. Try allowing more miles.`
                   : priceBand !== "any"
                   ? `Nothing in the ${findBand(priceBand).label.toLowerCase()} band matches. Try a wider budget.`
                   : "Try another search term or category."}

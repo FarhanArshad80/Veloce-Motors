@@ -9,6 +9,16 @@ export function parsePrice(price) {
   return Number.isNaN(value) ? 0 : value;
 }
 
+// Mileage lives on the vehicle the same way price does — a display string
+// like "18,420 mi" — so anything that wants to band or compare it needs the
+// number back out first.
+export function parseMileage(mileage) {
+  const digits = String(mileage).replace(/[^0-9.]/g, "");
+  const value = Number.parseFloat(digits);
+
+  return Number.isNaN(value) ? 0 : value;
+}
+
 export function formatMoney(amount) {
   return `$${Math.round(amount).toLocaleString("en-US")}`;
 }
