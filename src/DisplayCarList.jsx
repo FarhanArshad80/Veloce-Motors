@@ -131,6 +131,28 @@ const mileageBands = [
 // not still hanging over the page once attention has moved on.
 const UNDO_MS = 8000;
 
+// A shared selection: the exact vehicles someone picked out, named in the
+// link itself.
+//
+// "Saved only" could already be shared, but the star list it filters by lives
+// in the sender's browser — so the link arrived at a stranger's machine, found
+// their shortlist, and showed them an empty grid telling them to save some
+// vehicles. Naming the ids in the URL is what makes "here, these three" work.
+//
+// Ids of vehicles added on the sender's machine will not exist here, so the
+// list is a request rather than a promise and is always intersected with what
+// this inventory actually holds.
+function parsePick(value) {
+  if (!value) return null;
+
+  const ids = value
+    .split(",")
+    .map((part) => Number(part.trim()))
+    .filter((id) => Number.isFinite(id) && id > 0);
+
+  return ids.length > 0 ? ids : null;
+}
+
 function findBand(value) {
   return priceBands.find((band) => band.value === value) || priceBands[0];
 }
@@ -159,6 +181,7 @@ function getInitialFilters() {
       priceBand: "any",
       mileageBand: "any",
       shortlistOnly: false,
+      sharedPick: null,
     };
   }
 
@@ -176,6 +199,7 @@ function getInitialFilters() {
     priceBand: priceBands.some((option) => option.value === band) ? band : "any",
     mileageBand: mileageBands.some((option) => option.value === miles) ? miles : "any",
     shortlistOnly: params.get("saved") === "1",
+    sharedPick: parsePick(params.get("pick")),
   };
 }
 
@@ -227,6 +251,10 @@ export default function DisplayCarList() {
   const [mileageBand, setMileageBand] = useState(initialFilters.mileageBand);
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
+  // Someone else's picks, from the link that was opened. Deliberately kept
+  // apart from `shortlist`: a link should be able to show you what a friend
+  // chose without quietly rewriting what you had starred yourself.
+  const [sharedPick, setSharedPick] = useState(initialFilters.sharedPick);
   const [comparing, setComparing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   // The vehicle most recently removed, held with where it sat and whether it
@@ -261,6 +289,7 @@ export default function DisplayCarList() {
     apply("miles", mileageBand, "any");
     apply("sort", sortBy, "default");
     apply("saved", shortlistOnly ? "1" : "", "");
+    apply("pick", sharedPick ? sharedPick.join(",") : "", "");
 
     const search = params.toString();
     const { pathname, hash } = window.location;
@@ -269,7 +298,7 @@ export default function DisplayCarList() {
     if (next !== `${pathname}${window.location.search}${hash}`) {
       window.history.replaceState(null, "", next);
     }
-  }, [query, activeFilter, priceBand, mileageBand, sortBy, shortlistOnly]);
+  }, [query, activeFilter, priceBand, mileageBand, sortBy, shortlistOnly, sharedPick]);
 
   // "Copied" is a confirmation, not a state worth holding on to.
   useEffect(() => {
@@ -331,14 +360,25 @@ export default function DisplayCarList() {
     }
   }, [categories, activeFilter]);
 
+  // A shared selection narrows the inventory before anything else does, so
+  // every count and every other filter below describes the vehicles that were
+  // actually sent rather than the whole showroom.
+  const pickedCars = useMemo(
+    () =>
+      sharedPick
+        ? cars.filter((car) => sharedPick.includes(car.id))
+        : cars,
+    [cars, sharedPick]
+  );
+
   // Search is applied before the category chips so each chip can report how
   // many vehicles it would actually show for the current search term.
   const savedCars = useMemo(
     () =>
       shortlistOnly
-        ? cars.filter((car) => shortlist.includes(car.id))
-        : cars,
-    [cars, shortlist, shortlistOnly]
+        ? pickedCars.filter((car) => shortlist.includes(car.id))
+        : pickedCars,
+    [pickedCars, shortlist, shortlistOnly]
   );
 
   const searchMatches = useMemo(() => {
@@ -475,25 +515,54 @@ export default function DisplayCarList() {
       list.push({ key: "saved", label: "Saved only", clear: () => setShortlistOnly(false) });
     }
 
+    // Listed with the rest so it can be taken off the same way: someone who
+    // opens a friend's three picks and then wants to see everything else
+    // should not have to edit the address bar to get there.
+    if (sharedPick) {
+      list.push({
+        key: "pick",
+        label: `Shared selection (${sharedPick.length})`,
+        clear: () => setSharedPick(null),
+      });
+    }
+
     return list;
-  }, [query, activeFilter, priceBand, mileageBand, shortlistOnly]);
+  }, [query, activeFilter, priceBand, mileageBand, shortlistOnly, sharedPick]);
 
   const isNarrowed =
     query.trim() !== "" ||
     activeFilter !== "All" ||
     shortlistOnly ||
+    sharedPick !== null ||
     priceBand !== "any" ||
     mileageBand !== "any";
 
   // The clipboard can be refused — an insecure context, a denied permission.
   // The URL is in the address bar either way, so that case says so rather
   // than reporting a failure.
+  // Everything else on this page is already in the address bar, so the link
+  // is the address bar — with one exception. "Saved only" points at a list
+  // held in this browser, and that is the one view whose contents have to be
+  // written into the link itself to survive the trip.
+  function shareUrl() {
+    const url = new URL(window.location.href);
+
+    if (shortlistOnly && shortlist.length > 0) {
+      url.searchParams.delete("saved");
+      url.searchParams.set("pick", shortlist.join(","));
+    }
+
+    return url.toString();
+  }
+
   async function copyLink() {
+    const link = shareUrl();
+
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(link);
       setCopiedLink(true);
     } catch {
-      window.prompt("Copy this link to share these results:", window.location.href);
+      window.prompt("Copy this link to share these results:", link);
     }
   }
 
@@ -501,6 +570,7 @@ export default function DisplayCarList() {
     setQuery("");
     setActiveFilter("All");
     setShortlistOnly(false);
+    setSharedPick(null);
     setPriceBand("any");
     setMileageBand("any");
   }
@@ -762,7 +832,9 @@ export default function DisplayCarList() {
               <span>⌕</span>
               <h3>No vehicles found</h3>
               <p>
-                {shortlistOnly && shortlist.length === 0
+                {sharedPick && pickedCars.length === 0
+                  ? "None of the shared vehicles are in this inventory any more."
+                  : shortlistOnly && shortlist.length === 0
                   ? "You have not saved any vehicles yet. Tap the star on a card to shortlist it."
                   : mileageBand !== "any"
                   ? `Nothing ${findMileageBand(mileageBand).label.toLowerCase()} matches. Try allowing more miles.`
