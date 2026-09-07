@@ -1,48 +1,20 @@
-import React, { useMemo, useState } from "react";
-import { formatMoney, monthlyPayment, parsePrice } from "./pricing";
+import React, { useMemo } from "react";
+import {
+  FINANCE_TERM_OPTIONS,
+  formatMoney,
+  monthlyPayment,
+  parsePrice,
+} from "./pricing";
 
-const terms = [24, 36, 48, 60, 72];
-const TERMS_KEY = "veloce-finance-terms";
-
-const defaultTerms = { depositPercent: 10, months: 60, apr: 6.9 };
-
-// A buyer's deposit, term and rate belong to the buyer, not to the car. They
-// carry across the inventory so comparing two vehicles compares the vehicles
-// rather than two different sets of assumptions.
-function recallTerms() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(TERMS_KEY));
-
-    if (!saved || typeof saved !== "object") return defaultTerms;
-
-    return {
-      depositPercent: Number(saved.depositPercent) || defaultTerms.depositPercent,
-      months: terms.includes(Number(saved.months))
-        ? Number(saved.months)
-        : defaultTerms.months,
-      apr: Number.isFinite(Number(saved.apr)) ? Number(saved.apr) : defaultTerms.apr,
-    };
-  } catch {
-    return defaultTerms;
-  }
-}
-
-export default function FinanceCalculator({ car }) {
-  const [assumptions, setAssumptions] = useState(recallTerms);
-  const { depositPercent, months, apr } = assumptions;
+// The assumptions are held by the inventory above rather than here, so moving
+// a slider re-prices the whole grid and not just the vehicle on screen.
+export default function FinanceCalculator({ car, terms, onChangeTerms }) {
+  const { depositPercent, months, apr } = terms;
 
   const price = parsePrice(car.price);
 
   function update(patch) {
-    const next = { ...assumptions, ...patch };
-
-    setAssumptions(next);
-
-    try {
-      localStorage.setItem(TERMS_KEY, JSON.stringify(next));
-    } catch {
-      /* storage unavailable — the figures still work, they just reset */
-    }
+    onChangeTerms({ ...terms, ...patch });
   }
 
   const estimate = useMemo(() => {
@@ -112,7 +84,7 @@ export default function FinanceCalculator({ car }) {
       </label>
 
       <div className="finance-terms-row">
-        {terms.map((option) => (
+        {FINANCE_TERM_OPTIONS.map((option) => (
           <button
             key={option}
             type="button"

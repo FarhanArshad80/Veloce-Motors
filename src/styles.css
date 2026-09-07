@@ -910,6 +910,21 @@ button {
   white-space: nowrap;
 }
 
+/* Price stacked over the monthly estimate. Right-aligned together so the two
+   figures read as one column rather than two competing numbers. */
+.car-card-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.car-card-price small {
+  color: var(--muted);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 .car-card-divider {
   height: 1px;
   margin: 18px 0;

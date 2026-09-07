@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import FinanceCalculator from "./FinanceCalculator";
 import TestDriveForm from "./TestDriveForm";
 
-export default function CarDetails({ car }) {
+export default function CarDetails({ car, financeTerms, onChangeFinanceTerms }) {
   const [booking, setBooking] = useState(false);
 
   function handleImageError(event) {
@@ -76,7 +76,11 @@ export default function CarDetails({ car }) {
             "A carefully selected premium vehicle offering comfort, quality, style and dependable performance."}
         </p>
 
-        <FinanceCalculator car={car} />
+        <FinanceCalculator
+          car={car}
+          terms={financeTerms}
+          onChangeTerms={onChangeFinanceTerms}
+        />
 
         <div className="details-specifications">
           <div>

@@ -2,7 +2,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
-import { parseMileage, parsePrice } from "./pricing";
+import {
+  parseMileage,
+  parsePrice,
+  recallFinanceTerms,
+  saveFinanceTerms,
+} from "./pricing";
 
 const defaultCars = [
   {
@@ -255,6 +260,10 @@ export default function DisplayCarList() {
   // apart from `shortlist`: a link should be able to show you what a friend
   // chose without quietly rewriting what you had starred yourself.
   const [sharedPick, setSharedPick] = useState(initialFilters.sharedPick);
+  // Held here rather than in the finance panel, because every card in the
+  // grid now quotes a monthly figure and they all have to be quoting the same
+  // deal. Moving a slider in the sidebar re-prices the whole inventory.
+  const [financeTerms, setFinanceTerms] = useState(recallFinanceTerms);
   const [comparing, setComparing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   // The vehicle most recently removed, held with where it sat and whether it
@@ -575,6 +584,11 @@ export default function DisplayCarList() {
     setMileageBand("any");
   }
 
+  function handleFinanceTerms(next) {
+    setFinanceTerms(next);
+    saveFinanceTerms(next);
+  }
+
   function handleToggleShortlist(id) {
     setShortlist((currentShortlist) =>
       currentShortlist.includes(id)
@@ -824,6 +838,7 @@ export default function DisplayCarList() {
               onAdd={handleAddCar}
               onDelete={handleDeleteCar}
               onToggleShortlist={handleToggleShortlist}
+              financeTerms={financeTerms}
             />
           ))}
 
@@ -874,7 +889,11 @@ export default function DisplayCarList() {
 
       <aside className="details-sidebar">
         {selectedCar ? (
-          <CarDetails car={selectedCar} />
+          <CarDetails
+            car={selectedCar}
+            financeTerms={financeTerms}
+            onChangeFinanceTerms={handleFinanceTerms}
+          />
         ) : (
           <div className="empty-details">
             <div className="empty-details-icon">↗</div>

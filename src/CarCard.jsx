@@ -1,4 +1,10 @@
 import React, { useState } from "react";
+import {
+  DEFAULT_FINANCE_TERMS,
+  estimateMonthly,
+  formatMoney,
+  parsePrice,
+} from "./pricing";
 
 const fallbackImages = {
   sedan:
@@ -115,10 +121,15 @@ export default function CarCard({
   onAdd,
   onDelete,
   onToggleShortlist,
+  financeTerms = DEFAULT_FINANCE_TERMS,
 }) {
   const carType = getCarType(car);
   const imageSource = car.image || getFallbackImage(car);
   const description = getDescription(car);
+  // Sticker price is what a car costs; the monthly is what most people
+  // actually decide on. It was only ever visible in the sidebar, one vehicle
+  // at a time, which is the wrong place to compare six of them.
+  const monthly = estimateMonthly(parsePrice(car.price), financeTerms);
 
   // Removing a vehicle is permanent — the inventory is written straight back
   // to storage — so the button asks once before it acts.
@@ -209,7 +220,17 @@ export default function CarCard({
             </p>
           </div>
 
-          <strong>{car.price || "Price on request"}</strong>
+          <div className="car-card-price">
+            <strong>{car.price || "Price on request"}</strong>
+
+            {monthly > 0 && (
+              <small
+                title={`Estimate: ${financeTerms.depositPercent}% deposit over ${financeTerms.months} months at ${financeTerms.apr.toFixed(1)}% APR`}
+              >
+                {formatMoney(monthly)}/mo est.
+              </small>
+            )}
+          </div>
         </div>
 
         <p className="car-card-description">
