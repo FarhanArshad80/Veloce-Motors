@@ -3,6 +3,7 @@ import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
 import {
+  estimateMonthly,
   parseMileage,
   parsePrice,
   recallFinanceTerms,
@@ -132,6 +133,24 @@ const mileageBands = [
   { value: "under-50", label: "Under 50,000 mi", test: (m) => m < 50000 },
 ];
 
+// The question sticker price cannot answer. Most people do not buy a car with
+// $38,000; they buy it with $600 a month, and whether a given vehicle clears
+// that bar depends entirely on the deposit, term and rate set in the finance
+// panel - a $60,000 car is under $700/mo over 72 months and nowhere near it
+// over 24.
+//
+// So this band is tested against the same estimate the cards quote rather
+// than against the price, and the grid re-narrows when the sliders move. Open
+// -ended upwards like mileage: nobody shops for "between $300 and $500 a
+// month", they shop for "no more than".
+const monthlyBands = [
+  { value: "any", label: "Any monthly", test: () => true },
+  { value: "under-300", label: "Under $300/mo", test: (m) => m < 300 },
+  { value: "under-500", label: "Under $500/mo", test: (m) => m < 500 },
+  { value: "under-750", label: "Under $750/mo", test: (m) => m < 750 },
+  { value: "under-1000", label: "Under $1,000/mo", test: (m) => m < 1000 },
+];
+
 // Long enough to read the banner and reach for it, short enough that it is
 // not still hanging over the page once attention has moved on.
 const UNDO_MS = 8000;
@@ -166,6 +185,19 @@ function findMileageBand(value) {
   return mileageBands.find((band) => band.value === value) || mileageBands[0];
 }
 
+function findMonthlyBand(value) {
+  return monthlyBands.find((band) => band.value === value) || monthlyBands[0];
+}
+
+// A vehicle with no usable price has no monthly figure either, and the cards
+// already decline to quote one. Letting it through a budget filter would put
+// it in front of someone as an answer to a question it cannot answer.
+function monthlyWithin(car, band, terms) {
+  const monthly = estimateMonthly(parsePrice(car.price), terms);
+
+  return monthly > 0 && band.test(monthly);
+}
+
 // A narrowed inventory is a thing people send to each other — "here, the
 // SUVs under $50k" — and a thing they expect the back button to return them
 // to. Keeping the filters in the query string makes both work, and costs a
@@ -185,6 +217,7 @@ function getInitialFilters() {
       sortBy: "default",
       priceBand: "any",
       mileageBand: "any",
+      monthlyBand: "any",
       shortlistOnly: false,
       sharedPick: null,
     };
@@ -193,6 +226,7 @@ function getInitialFilters() {
   const sort = params.get("sort");
   const band = params.get("price");
   const miles = params.get("miles");
+  const monthly = params.get("mo");
 
   return {
     query: params.get("q") || "",
@@ -203,6 +237,7 @@ function getInitialFilters() {
     sortBy: sortOptions.some((option) => option.value === sort) ? sort : "default",
     priceBand: priceBands.some((option) => option.value === band) ? band : "any",
     mileageBand: mileageBands.some((option) => option.value === miles) ? miles : "any",
+    monthlyBand: monthlyBands.some((option) => option.value === monthly) ? monthly : "any",
     shortlistOnly: params.get("saved") === "1",
     sharedPick: parsePick(params.get("pick")),
   };
@@ -254,6 +289,7 @@ export default function DisplayCarList() {
   const [sortBy, setSortBy] = useState(initialFilters.sortBy);
   const [priceBand, setPriceBand] = useState(initialFilters.priceBand);
   const [mileageBand, setMileageBand] = useState(initialFilters.mileageBand);
+  const [monthlyBand, setMonthlyBand] = useState(initialFilters.monthlyBand);
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
   // Someone else's picks, from the link that was opened. Deliberately kept
@@ -296,6 +332,7 @@ export default function DisplayCarList() {
     apply("type", activeFilter, "All");
     apply("price", priceBand, "any");
     apply("miles", mileageBand, "any");
+    apply("mo", monthlyBand, "any");
     apply("sort", sortBy, "default");
     apply("saved", shortlistOnly ? "1" : "", "");
     apply("pick", sharedPick ? sharedPick.join(",") : "", "");
@@ -307,7 +344,10 @@ export default function DisplayCarList() {
     if (next !== `${pathname}${window.location.search}${hash}`) {
       window.history.replaceState(null, "", next);
     }
-  }, [query, activeFilter, priceBand, mileageBand, sortBy, shortlistOnly, sharedPick]);
+  }, [
+    query, activeFilter, priceBand, mileageBand, monthlyBand, sortBy,
+    shortlistOnly, sharedPick,
+  ]);
 
   // "Copied" is a confirmation, not a state worth holding on to.
   useEffect(() => {
@@ -453,10 +493,34 @@ export default function DisplayCarList() {
     return priceMatches.filter((car) => test(parseMileage(car.mileage)));
   }, [priceMatches, mileageBand]);
 
-  const categoryCounts = useMemo(() => {
-    const counts = { All: mileageMatches.length };
+  // Counted, like the two above, from what is left after the filters before
+  // it - and recounted whenever the finance terms move, because a change of
+  // term is a change to every one of these numbers.
+  const monthlyCounts = useMemo(() => {
+    const counts = {};
 
-    for (const car of mileageMatches) {
+    for (const band of monthlyBands) {
+      counts[band.value] =
+        band.value === "any"
+          ? mileageMatches.length
+          : mileageMatches.filter((car) => monthlyWithin(car, band, financeTerms)).length;
+    }
+
+    return counts;
+  }, [mileageMatches, financeTerms]);
+
+  const monthlyMatches = useMemo(() => {
+    if (monthlyBand === "any") return mileageMatches;
+
+    const band = findMonthlyBand(monthlyBand);
+
+    return mileageMatches.filter((car) => monthlyWithin(car, band, financeTerms));
+  }, [mileageMatches, monthlyBand, financeTerms]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { All: monthlyMatches.length };
+
+    for (const car of monthlyMatches) {
       const type = car.type || "Other";
       counts[type] = (counts[type] || 0) + 1;
     }
@@ -465,7 +529,7 @@ export default function DisplayCarList() {
   }, [mileageMatches]);
 
   const filteredCars = useMemo(() => {
-    const matching = mileageMatches.filter(
+    const matching = monthlyMatches.filter(
       (car) =>
         activeFilter === "All" ||
         (car.type || "Other") === activeFilter
@@ -491,7 +555,7 @@ export default function DisplayCarList() {
     }
 
     return sorted;
-  }, [mileageMatches, activeFilter, sortBy]);
+  }, [monthlyMatches, activeFilter, sortBy]);
 
   // Every narrowing currently in force, each carrying the means to undo just
   // itself. The controls are spread across a search box, three selects and a
@@ -520,6 +584,14 @@ export default function DisplayCarList() {
       });
     }
 
+    if (monthlyBand !== "any") {
+      list.push({
+        key: "mo",
+        label: findMonthlyBand(monthlyBand).label,
+        clear: () => setMonthlyBand("any"),
+      });
+    }
+
     if (shortlistOnly) {
       list.push({ key: "saved", label: "Saved only", clear: () => setShortlistOnly(false) });
     }
@@ -536,7 +608,7 @@ export default function DisplayCarList() {
     }
 
     return list;
-  }, [query, activeFilter, priceBand, mileageBand, shortlistOnly, sharedPick]);
+  }, [query, activeFilter, priceBand, mileageBand, monthlyBand, shortlistOnly, sharedPick]);
 
   const isNarrowed =
     query.trim() !== "" ||
@@ -544,7 +616,8 @@ export default function DisplayCarList() {
     shortlistOnly ||
     sharedPick !== null ||
     priceBand !== "any" ||
-    mileageBand !== "any";
+    mileageBand !== "any" ||
+    monthlyBand !== "any";
 
   // The clipboard can be refused — an insecure context, a denied permission.
   // The URL is in the address bar either way, so that case says so rather
@@ -582,6 +655,7 @@ export default function DisplayCarList() {
     setSharedPick(null);
     setPriceBand("any");
     setMileageBand("any");
+    setMonthlyBand("any");
   }
 
   function handleFinanceTerms(next) {
@@ -760,6 +834,20 @@ export default function DisplayCarList() {
 
             <select
               className="sort-select"
+              value={monthlyBand}
+              onChange={(event) => setMonthlyBand(event.target.value)}
+              aria-label="Filter by estimated monthly payment"
+            >
+              {monthlyBands.map((band) => (
+                <option key={band.value} value={band.value}>
+                  {band.label}
+                  {band.value === "any" ? "" : ` (${monthlyCounts[band.value] || 0})`}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="sort-select"
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value)}
               aria-label="Sort vehicles"
@@ -851,6 +939,8 @@ export default function DisplayCarList() {
                   ? "None of the shared vehicles are in this inventory any more."
                   : shortlistOnly && shortlist.length === 0
                   ? "You have not saved any vehicles yet. Tap the star on a card to shortlist it."
+                  : monthlyBand !== "any"
+                  ? `Nothing comes in ${findMonthlyBand(monthlyBand).label.toLowerCase()} on these terms. A longer term or a bigger deposit brings the payment down.`
                   : mileageBand !== "any"
                   ? `Nothing ${findMileageBand(mileageBand).label.toLowerCase()} matches. Try allowing more miles.`
                   : priceBand !== "any"
