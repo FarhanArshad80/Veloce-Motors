@@ -1881,6 +1881,15 @@ button {
   letter-spacing: 0.5px;
 }
 
+/* The basis for the two money rows, under the table where a footnote goes.
+   Quieter than the figures it explains, but present: those rows move when the
+   finance panel moves, and nothing else in this table does. */
+.compare-terms {
+  margin: 12px 0 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
 .compare-close {
   flex-shrink: 0;
   border: 1px solid var(--border);

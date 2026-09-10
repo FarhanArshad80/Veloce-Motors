@@ -107,6 +107,11 @@ const sortOptions = [
   { value: "default", label: "Featured" },
   { value: "price-asc", label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
+  // Sticker price and monthly payment rank the same inventory the same way
+  // while the terms are shared, and they stop agreeing the moment a vehicle
+  // has no usable price: that one has no monthly figure at all, and belongs
+  // at the end of this order rather than at the top of it.
+  { value: "monthly-asc", label: "Monthly: Low to High" },
   { value: "year-desc", label: "Year: Newest first" },
   { value: "name-asc", label: "Name: A–Z" },
 ];
@@ -544,6 +549,19 @@ export default function DisplayCarList() {
       case "price-desc":
         sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
         break;
+      case "monthly-asc":
+        sorted.sort((a, b) => {
+          const left = estimateMonthly(parsePrice(a.price), financeTerms);
+          const right = estimateMonthly(parsePrice(b.price), financeTerms);
+
+          // A vehicle nobody can be quoted on sinks rather than leading a
+          // list ordered by cheapest, where a zero would read as free.
+          if (left <= 0) return right <= 0 ? 0 : 1;
+          if (right <= 0) return -1;
+
+          return left - right;
+        });
+        break;
       case "year-desc":
         sorted.sort((a, b) => (b.year || 0) - (a.year || 0));
         break;
@@ -555,7 +573,7 @@ export default function DisplayCarList() {
     }
 
     return sorted;
-  }, [monthlyMatches, activeFilter, sortBy]);
+  }, [monthlyMatches, activeFilter, sortBy, financeTerms]);
 
   // Every narrowing currently in force, each carrying the means to undo just
   // itself. The controls are spread across a search box, three selects and a
@@ -909,6 +927,7 @@ export default function DisplayCarList() {
         {comparing && comparedCars.length >= 2 && (
           <CompareTable
             cars={comparedCars}
+            financeTerms={financeTerms}
             onClose={() => setComparing(false)}
             onRemove={handleToggleShortlist}
           />
