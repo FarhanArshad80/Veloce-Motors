@@ -45,6 +45,25 @@ export const FINANCE_TERMS_KEY = "veloce-finance-terms";
 export const FINANCE_TERM_OPTIONS = [24, 36, 48, 60, 72];
 export const DEFAULT_FINANCE_TERMS = { depositPercent: 10, months: 60, apr: 6.9 };
 
+// The range each slider actually offers. Stored values are held to it, so a
+// figure edited by hand — or left behind by a build where the slider went
+// further — cannot put the panel into a state its own controls could never
+// produce.
+export const DEPOSIT_RANGE = { min: 0, max: 50 };
+export const APR_RANGE = { min: 0, max: 15 };
+
+// Nothing is a real answer. Reading a stored number with `Number(x) || fallback`
+// throws away every zero it is given, which for a deposit means the one
+// choice a buyer might most want remembered — paying nothing up front — was
+// the single value that could not survive a reload.
+function clampNumber(value, { min, max }, fallback) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) return fallback;
+
+  return Math.min(Math.max(number, min), max);
+}
+
 export function recallFinanceTerms() {
   try {
     const saved = JSON.parse(localStorage.getItem(FINANCE_TERMS_KEY));
@@ -52,14 +71,15 @@ export function recallFinanceTerms() {
     if (!saved || typeof saved !== "object") return DEFAULT_FINANCE_TERMS;
 
     return {
-      depositPercent:
-        Number(saved.depositPercent) || DEFAULT_FINANCE_TERMS.depositPercent,
+      depositPercent: clampNumber(
+        saved.depositPercent,
+        DEPOSIT_RANGE,
+        DEFAULT_FINANCE_TERMS.depositPercent
+      ),
       months: FINANCE_TERM_OPTIONS.includes(Number(saved.months))
         ? Number(saved.months)
         : DEFAULT_FINANCE_TERMS.months,
-      apr: Number.isFinite(Number(saved.apr))
-        ? Number(saved.apr)
-        : DEFAULT_FINANCE_TERMS.apr,
+      apr: clampNumber(saved.apr, APR_RANGE, DEFAULT_FINANCE_TERMS.apr),
     };
   } catch {
     return DEFAULT_FINANCE_TERMS;
