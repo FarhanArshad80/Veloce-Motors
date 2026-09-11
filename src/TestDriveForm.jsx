@@ -1,4 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  addBooking,
+  bookingForCar,
+  recallBookings,
+  removeBooking,
+  saveBookings,
+  slotTaken,
+} from "./bookings";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -56,8 +64,15 @@ function slotLabel(time) {
   }`;
 }
 
-export default function TestDriveForm({ car, onClose }) {
+export default function TestDriveForm({ car, onClose, onBookingsChange }) {
   const days = useMemo(() => openDays(), []);
+
+  // Read when the dialog opens rather than held above it, so the one booking
+  // that matters here — this car's — is always the stored truth and not a
+  // copy that went stale while the panel sat open.
+  const [bookings, setBookings] = useState(recallBookings);
+
+  const existing = car ? bookingForCar(bookings, car.id) : null;
 
   const [day, setDay] = useState(days[0]?.key || "");
   const [slot, setSlot] = useState(SLOTS[0]);
@@ -100,13 +115,54 @@ export default function TestDriveForm({ car, onClose }) {
     if (phone.replace(/\D/g, "").length < 7) next.phone = "A number we can reach you on.";
     if (!day) next.day = "Pick a day.";
 
+    // The showroom can only hand over one set of keys at a time, and so can
+    // the visitor only drive one car at a time.
+    if (day && slotTaken(bookings, day, slot)) {
+      next.slot = "You already have a car booked for that slot.";
+    }
+
     setErrors(next);
 
     if (Object.keys(next).length) return;
 
-    // Nothing is sent anywhere yet — this is the shape the booking takes
-    // once there is a diary to write it into.
+    // The confirmation itself still goes nowhere — there is no diary at the
+    // showroom end yet. What is written down here is the appointment, so the
+    // visitor has something to come back to and something to cancel.
+    const booking = {
+      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+      carId: car ? car.id : null,
+      carName: car ? car.name : null,
+      day,
+      slot,
+    };
+
+    persist(addBooking(bookings, booking));
     setBooked(true);
+  }
+
+  function persist(next) {
+    setBookings(next);
+    saveBookings(next);
+    // The grid behind this dialog marks the cars that are booked, so it has
+    // to hear about it rather than wait for a reload.
+    onBookingsChange?.(next);
+  }
+
+  function cancelExisting() {
+    if (!existing) return;
+
+    persist(removeBooking(bookings, existing.id));
+    setBooked(false);
+  }
+
+  const dayOf = (key) => days.find((option) => option.key === key);
+
+  function bookingText(booking) {
+    const when = dayOf(booking.day);
+
+    return when
+      ? `${when.weekday} ${when.day} ${when.month} at ${slotLabel(booking.slot)}`
+      : `${booking.day} at ${slotLabel(booking.slot)}`;
   }
 
   return (
@@ -137,6 +193,11 @@ export default function TestDriveForm({ car, onClose }) {
             </p>
 
             <p className="booking-fine">
+              Kept on this device, so it is here when you come back — and can
+              be cancelled from the vehicle whenever you need to.
+            </p>
+
+            <p className="booking-fine">
               A confirmation is on its way to {email.trim()}. Bring your
               licence — we cannot hand over the keys without it.
             </p>
@@ -144,6 +205,38 @@ export default function TestDriveForm({ car, onClose }) {
             <button className="details-action-button" onClick={onClose}>
               Done
               <span>→</span>
+            </button>
+          </div>
+        ) : existing ? (
+          /* Reopening the dialog on a car that is already booked should not
+             present an empty form. The visitor is here to check the time or
+             to call it off, and offering them a second identical booking is
+             the one thing they are certainly not here for. */
+          <div className="booking-done" role="status">
+            <span className="booking-tick">✓</span>
+
+            <h3 id="booking-title">Already booked</h3>
+
+            <p>
+              {bookingText(existing)}
+              {car ? `, in the ${car.name}.` : "."}
+            </p>
+
+            <p className="booking-fine">
+              Bring your licence — we cannot hand over the keys without it.
+            </p>
+
+            <button className="details-action-button" onClick={onClose}>
+              Keep it
+              <span>→</span>
+            </button>
+
+            <button
+              type="button"
+              className="booking-cancel"
+              onClick={cancelExisting}
+            >
+              Cancel this test drive
             </button>
           </div>
         ) : (
@@ -186,18 +279,34 @@ export default function TestDriveForm({ car, onClose }) {
               <legend>What time?</legend>
 
               <div className="booking-slot-row">
-                {SLOTS.map((time) => (
-                  <button
-                    type="button"
-                    key={time}
-                    className={time === slot ? "booking-slot is-on" : "booking-slot"}
-                    onClick={() => setSlot(time)}
-                    aria-pressed={time === slot}
-                  >
-                    {slotLabel(time)}
-                  </button>
-                ))}
+                {SLOTS.map((time) => {
+                  // Shown rather than hidden: a slot missing from the row
+                  // looks like the showroom is shut, where a struck-through
+                  // one says who took it — which was the visitor.
+                  const taken = slotTaken(bookings, day, time);
+
+                  return (
+                    <button
+                      type="button"
+                      key={time}
+                      className={[
+                        "booking-slot",
+                        time === slot ? "is-on" : "",
+                        taken ? "is-taken" : "",
+                      ].filter(Boolean).join(" ")}
+                      onClick={() => {
+                        setSlot(time);
+                        setErrors((current) => ({ ...current, slot: "" }));
+                      }}
+                      aria-pressed={time === slot}
+                      title={taken ? "You already have a car booked then" : undefined}
+                    >
+                      {slotLabel(time)}
+                    </button>
+                  );
+                })}
               </div>
+              {errors.slot && <em className="booking-slot-error">{errors.slot}</em>}
             </fieldset>
 
             <label className="booking-field">

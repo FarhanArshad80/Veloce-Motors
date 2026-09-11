@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
+import { bookingForCar, recallBookings } from "./bookings";
 import {
   estimateMonthly,
   parseMileage,
@@ -289,6 +290,9 @@ export default function DisplayCarList() {
 
   const [cars, setCars] = useState(getInitialCars);
   const [selectedCar, setSelectedCar] = useState(null);
+  // Test drives already in the diary. The dialog owns writing them; the grid
+  // only needs to know which cars carry one so it can say so.
+  const [bookings, setBookings] = useState(recallBookings);
   const [query, setQuery] = useState(initialFilters.query);
   const [activeFilter, setActiveFilter] = useState(initialFilters.activeFilter);
   const [sortBy, setSortBy] = useState(initialFilters.sortBy);
@@ -938,6 +942,7 @@ export default function DisplayCarList() {
             <CarCard
               key={car.id}
               car={car}
+              booking={bookingForCar(bookings, car.id)}
               index={index}
               selected={selectedCar?.id === car.id}
               shortlisted={shortlist.includes(car.id)}
@@ -1000,6 +1005,8 @@ export default function DisplayCarList() {
         {selectedCar ? (
           <CarDetails
             car={selectedCar}
+            booking={bookingForCar(bookings, selectedCar.id)}
+            onBookingsChange={setBookings}
             financeTerms={financeTerms}
             onChangeFinanceTerms={handleFinanceTerms}
           />

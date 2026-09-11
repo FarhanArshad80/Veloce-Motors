@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import FinanceCalculator from "./FinanceCalculator";
 import TestDriveForm from "./TestDriveForm";
+import { bookingWhen } from "./bookings";
 
-export default function CarDetails({ car, financeTerms, onChangeFinanceTerms }) {
-  const [booking, setBooking] = useState(false);
+export default function CarDetails({
+  car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
+}) {
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
@@ -104,16 +107,23 @@ export default function CarDetails({ car, financeTerms, onChangeFinanceTerms }) 
           </div>
         </div>
 
+        {/* The button says what pressing it will do. With a drive already in
+            the diary that is not "book" — it is "look at the one you have",
+            and the date is the part worth reading anyway. */}
         <button
           className="details-action-button"
-          onClick={() => setBooking(true)}
+          onClick={() => setBookingOpen(true)}
         >
-          Book a test drive
+          {booking ? `Test drive · ${bookingWhen(booking)}` : "Book a test drive"}
           <span>→</span>
         </button>
 
-        {booking && (
-          <TestDriveForm car={car} onClose={() => setBooking(false)} />
+        {bookingOpen && (
+          <TestDriveForm
+            car={car}
+            onClose={() => setBookingOpen(false)}
+            onBookingsChange={onBookingsChange}
+          />
         )}
       </div>
     </article>

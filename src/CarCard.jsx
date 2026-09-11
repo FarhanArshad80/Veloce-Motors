@@ -5,6 +5,7 @@ import {
   formatMoney,
   parsePrice,
 } from "./pricing";
+import { bookingWhen } from "./bookings";
 
 const fallbackImages = {
   sedan:
@@ -121,6 +122,7 @@ export default function CarCard({
   onAdd,
   onDelete,
   onToggleShortlist,
+  booking = null,
   financeTerms = DEFAULT_FINANCE_TERMS,
 }) {
   const carType = getCarType(car);
@@ -232,6 +234,15 @@ export default function CarCard({
             )}
           </div>
         </div>
+
+        {/* A booked car is not just another listing in the grid, and the
+            only place this was ever said was inside the dialog that made
+            the booking. */}
+        {booking && (
+          <p className="car-card-booked">
+            Test drive · {bookingWhen(booking)}
+          </p>
+        )}
 
         <p className="car-card-description">
           {description}
