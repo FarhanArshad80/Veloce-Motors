@@ -94,6 +94,40 @@ export function saveFinanceTerms(terms) {
   }
 }
 
+// What the longer term actually costs.
+//
+// The term buttons are the one control on the panel that only ever looks
+// like good news: press 72 and the monthly figure above them drops, which is
+// the number the whole page is built around. What it does to the cost of
+// credit is three rows further down, changes at the same moment, and is easy
+// to read as though it had always said that.
+//
+// The two are the same decision. Stretching the term buys a smaller payment
+// with a larger total, and a buyer is entitled to see both halves of that
+// sentence in one place — measured against the shortest term on offer, which
+// is the honest baseline: it is the deal they could have had.
+//
+// Null on the shortest term itself, where there is no trade to describe, and
+// on anything without a usable price.
+export function termTradeoff(price, terms, baseline = FINANCE_TERM_OPTIONS[0]) {
+  if (price <= 0 || terms.months <= baseline) return null;
+
+  const financed = price - (price * terms.depositPercent) / 100;
+  const chosen = monthlyPayment(financed, terms.apr, terms.months);
+  const shortest = monthlyPayment(financed, terms.apr, baseline);
+
+  if (chosen <= 0 || shortest <= 0) return null;
+
+  return {
+    baseline,
+    monthlySaved: shortest - chosen,
+    // Interest rather than total paid: the amount financed is the same
+    // either way, so the difference between the two totals is entirely the
+    // cost of borrowing for longer.
+    extraInterest: chosen * terms.months - shortest * baseline,
+  };
+}
+
 // What a card advertises: the price less the deposit, amortised over the
 // chosen term. Zero for anything without a usable price, because a "$0/mo"
 // badge reads as an offer rather than as missing data.

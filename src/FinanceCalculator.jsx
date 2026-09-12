@@ -4,6 +4,7 @@ import {
   formatMoney,
   monthlyPayment,
   parsePrice,
+  termTradeoff,
 } from "./pricing";
 
 // The assumptions are held by the inventory above rather than here, so moving
@@ -29,6 +30,15 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
       interest: monthly * months - financed,
     };
   }, [price, depositPercent, apr, months]);
+
+  // What the chosen term costs against the shortest one on offer. Null on
+  // that shortest term, where there is nothing to compare.
+  // Rebuilt from the loose parts rather than handed `terms`, so this reads
+  // the same three values the estimate above it does and moves when they do.
+  const tradeoff = useMemo(
+    () => termTradeoff(price, { depositPercent, months, apr }),
+    [price, depositPercent, apr, months]
+  );
 
   // Without a price there is nothing to amortise, and a "$0/mo" figure would
   // read as an offer rather than as missing data.
@@ -96,6 +106,26 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
           </button>
         ))}
       </div>
+
+      {/* Directly under the buttons that cause it. The cost of credit is in
+          the summary below and moves at the same moment, which is exactly
+          why it goes unnoticed: it is a number that was already there. This
+          is the sentence. */}
+      {tradeoff && (
+        <p className="finance-tradeoff">
+          Against {tradeoff.baseline} months, that is{" "}
+          <strong>{formatMoney(tradeoff.monthlySaved)}</strong> less a month
+          {tradeoff.extraInterest >= 1 ? (
+            <>
+              {" and "}
+              <strong>{formatMoney(tradeoff.extraInterest)}</strong> more in
+              credit.
+            </>
+          ) : (
+            " at no extra cost in credit."
+          )}
+        </p>
+      )}
 
       <div className="finance-summary">
         <div>

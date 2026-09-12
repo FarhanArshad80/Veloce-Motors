@@ -1359,6 +1359,25 @@ button {
   font-size: 12px;
 }
 
+/* Louder than the disclaimer under it and quieter than the figure above:
+   this is a consequence of the choice just made, not small print and not the
+   headline. The two amounts are picked out because they are the sentence —
+   the words between them are only holding them together. */
+.finance-tradeoff {
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  border-left: 2px solid var(--gold);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.65;
+}
+
+.finance-tradeoff strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .finance-disclaimer {
   margin: 14px 0 0;
   color: var(--muted);
