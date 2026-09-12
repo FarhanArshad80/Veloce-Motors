@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   addBooking,
   bookingForCar,
+  downloadBookingCalendar,
   recallBookings,
   removeBooking,
   saveBookings,
@@ -80,7 +81,10 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [errors, setErrors] = useState({});
-  const [booked, setBooked] = useState(false);
+  // The appointment just made, rather than a flag saying one was. The
+  // confirmation screen offers it as a calendar file, and a boolean cannot
+  // be handed to a diary.
+  const [booked, setBooked] = useState(null);
 
   const dialogRef = useRef(null);
   const firstFieldRef = useRef(null);
@@ -137,7 +141,7 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
     };
 
     persist(addBooking(bookings, booking));
-    setBooked(true);
+    setBooked(booking);
   }
 
   function persist(next) {
@@ -152,7 +156,7 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
     if (!existing) return;
 
     persist(removeBooking(bookings, existing.id));
-    setBooked(false);
+    setBooked(null);
   }
 
   const dayOf = (key) => days.find((option) => option.key === key);
@@ -206,6 +210,14 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
               Done
               <span>→</span>
             </button>
+
+            <button
+              type="button"
+              className="booking-calendar"
+              onClick={() => downloadBookingCalendar(booked)}
+            >
+              Add to calendar
+            </button>
           </div>
         ) : existing ? (
           /* Reopening the dialog on a car that is already booked should not
@@ -229,6 +241,17 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
             <button className="details-action-button" onClick={onClose}>
               Keep it
               <span>→</span>
+            </button>
+
+            {/* Offered here too, not only on the fresh confirmation. Somebody
+                reopening a booking they made last week on another device is
+                exactly the person whose diary does not have it. */}
+            <button
+              type="button"
+              className="booking-calendar"
+              onClick={() => downloadBookingCalendar(existing)}
+            >
+              Add to calendar
             </button>
 
             <button

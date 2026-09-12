@@ -101,3 +101,124 @@ export function addBooking(bookings, booking) {
 export function removeBooking(bookings, id) {
   return bookings.filter((entry) => entry.id !== id);
 }
+
+// An appointment that lives only in this browser is one the person who made
+// it will not think about again until they happen to reopen the site. The
+// showroom is expecting them on Thursday; nothing on their phone is.
+//
+// So the booking is offered as a calendar file, which is the one format every
+// diary on every platform already understands - no account, no integration,
+// no permission prompt.
+const TEST_DRIVE_MINUTES = 60;
+
+// Text inside an ICS field is delimited by commas and semicolons, so a
+// vehicle called "Civic, Sport" would otherwise end the summary early and
+// leave the rest of the line to be read as another property.
+function icsText(value) {
+  return String(value)
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r?\n/g, "\\n");
+}
+
+function icsStamp(date) {
+  return `${date.toISOString().replace(/[-:]/g, "").slice(0, 15)}Z`;
+}
+
+// Deliberately a floating local time — no Z, no TZID. A test drive at half
+// past eleven is half past eleven at the showroom, and pinning it to an
+// offset would move it in the diary of anyone who books from one timezone
+// and drives in another, which is the wrong way round: it is the appointment
+// that is fixed, not the instant.
+function icsLocal(day, slot) {
+  return `${day.replace(/-/g, "")}T${slot.replace(":", "")}00`;
+}
+
+function addMinutes(slot, minutes) {
+  const [hours, mins] = slot.split(":").map(Number);
+  const total = hours * 60 + mins + minutes;
+
+  return `${String(Math.floor(total / 60) % 24).padStart(2, "0")}:${String(
+    total % 60
+  ).padStart(2, "0")}`;
+}
+
+// No line may exceed 75 octets. Continuations start with a space, which the
+// reader strips back out. A description with a vehicle name in it clears 75
+// easily, and the stricter clients treat an over-long line as a malformed
+// file rather than trimming it.
+//
+// Measured in octets rather than characters, because the em dash in "Bring
+// your licence — " is three bytes and a fold counted in characters would put
+// the break in the wrong place, or worse, inside the dash.
+function fold(line) {
+  const bytes = new TextEncoder().encode(line);
+
+  if (bytes.length <= 75) return line;
+
+  const chunks = [];
+  let start = 0;
+
+  while (start < bytes.length) {
+    // 74 after the first chunk, leaving room for the leading space that the
+    // continuation carries.
+    const limit = start === 0 ? 75 : 74;
+    let end = Math.min(start + limit, bytes.length);
+
+    // Never split a multi-byte character: continuation bytes are 10xxxxxx,
+    // so walk back to the start of the sequence the cut landed in.
+    while (end > start && end < bytes.length && (bytes[end] & 0xc0) === 0x80) {
+      end -= 1;
+    }
+
+    chunks.push(new TextDecoder().decode(bytes.slice(start, end)));
+    start = end;
+  }
+
+  return chunks.join("\r\n ");
+}
+
+export function bookingCalendar(booking, now = new Date()) {
+  const vehicle = booking.carName ? `the ${booking.carName}` : "a vehicle";
+
+  // CRLF between every line, including the last: the spec asks for it, and
+  // the stricter desktop clients refuse a file that uses bare newlines.
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Veloce Motors//Test Drive//EN",
+    "BEGIN:VEVENT",
+    `UID:${icsText(booking.id)}@veloce-motors`,
+    `DTSTAMP:${icsStamp(now)}`,
+    `DTSTART:${icsLocal(booking.day, booking.slot)}`,
+    `DTEND:${icsLocal(booking.day, addMinutes(booking.slot, TEST_DRIVE_MINUTES))}`,
+    `SUMMARY:${icsText(`Test drive — ${booking.carName || "Veloce Motors"}`)}`,
+    `DESCRIPTION:${icsText(
+      `Test drive of ${vehicle} at Veloce Motors. Bring your licence — we cannot hand over the keys without it.`
+    )}`,
+    "LOCATION:Veloce Motors",
+    "END:VEVENT",
+    "END:VCALENDAR",
+    "",
+  ]
+    .map(fold)
+    .join("\r\n");
+}
+
+export function downloadBookingCalendar(booking) {
+  const blob = new Blob([bookingCalendar(booking)], {
+    type: "text/calendar;charset=utf-8",
+  });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `veloce-test-drive-${booking.day}.ics`;
+  link.click();
+
+  // Handed back on the next task rather than immediately: the save is started
+  // by the click but not necessarily finished when it returns, and revoking
+  // the URL underneath it cancels the download.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}

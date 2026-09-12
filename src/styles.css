@@ -2189,6 +2189,31 @@ button {
   font-style: normal;
 }
 
+/* An outline rather than a fill: taking the appointment away with you is
+   worth offering plainly, but the primary action on this screen is still the
+   one that closes it. */
+.booking-calendar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.booking-calendar:hover,
+.booking-calendar:focus-visible {
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #fff;
+}
+
 /* Quieter than the button above it: cancelling is a real option, not the one
    being encouraged. */
 .booking-cancel {
