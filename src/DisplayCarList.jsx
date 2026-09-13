@@ -226,6 +226,7 @@ function getInitialFilters() {
       monthlyBand: "any",
       shortlistOnly: false,
       sharedPick: null,
+      openCar: null,
     };
   }
 
@@ -246,6 +247,10 @@ function getInitialFilters() {
     monthlyBand: monthlyBands.some((option) => option.value === monthly) ? monthly : "any",
     shortlistOnly: params.get("saved") === "1",
     sharedPick: parsePick(params.get("pick")),
+    // One vehicle, open. Checked against the inventory when the page starts
+    // rather than here, because the inventory is what decides whether that
+    // id still exists.
+    openCar: parsePick(params.get("car"))?.[0] ?? null,
   };
 }
 
@@ -289,7 +294,16 @@ export default function DisplayCarList() {
   const initialFilters = useMemo(getInitialFilters, []);
 
   const [cars, setCars] = useState(getInitialCars);
-  const [selectedCar, setSelectedCar] = useState(null);
+  // The vehicle open in the sidebar, which is now part of the address like
+  // the filters are. "Have a look at this one" was the most natural link
+  // anybody could want to send from a showroom page, and the best it could
+  // do was a grid the recipient then had to search. A stale or unknown id
+  // opens nothing rather than an error — the inventory is still there.
+  const [selectedCar, setSelectedCar] = useState(() =>
+    initialFilters.openCar
+      ? cars.find((car) => car.id === initialFilters.openCar) || null
+      : null
+  );
   // Test drives already in the diary. The dialog owns writing them; the grid
   // only needs to know which cars carry one so it can say so.
   const [bookings, setBookings] = useState(recallBookings);
@@ -345,6 +359,7 @@ export default function DisplayCarList() {
     apply("sort", sortBy, "default");
     apply("saved", shortlistOnly ? "1" : "", "");
     apply("pick", sharedPick ? sharedPick.join(",") : "", "");
+    apply("car", selectedCar ? String(selectedCar.id) : "", "");
 
     const search = params.toString();
     const { pathname, hash } = window.location;
@@ -355,7 +370,7 @@ export default function DisplayCarList() {
     }
   }, [
     query, activeFilter, priceBand, mileageBand, monthlyBand, sortBy,
-    shortlistOnly, sharedPick,
+    shortlistOnly, sharedPick, selectedCar,
   ]);
 
   // "Copied" is a confirmation, not a state worth holding on to.
