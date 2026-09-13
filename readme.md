@@ -2,6 +2,15 @@
 
 A sleek, interactive web application built with React and Vite for exploring vehicle lineups, inspecting car details, and managing maintenance information.
 
+## 🏆 GitHub Achievements
+
+<p align="left">
+  <a href="https://github.com/FarhanArshad80?tab=achievements"><img src="https://github.githubassets.com/images/modules/profile/achievements/quickdraw-default.png" alt="Quickdraw" title="Quickdraw" width="80" height="80"></a>
+  <a href="https://github.com/FarhanArshad80?tab=achievements"><img src="https://github.githubassets.com/images/modules/profile/achievements/yolo-default.png" alt="YOLO" title="YOLO" width="80" height="80"></a>
+  <a href="https://github.com/FarhanArshad80?tab=achievements"><img src="https://github.githubassets.com/images/modules/profile/achievements/pair-extraordinaire-default.png" alt="Pair Extraordinaire" title="Pair Extraordinaire" width="80" height="80"></a>
+  <a href="https://github.com/FarhanArshad80?tab=achievements"><img src="https://github.githubassets.com/images/modules/profile/achievements/pull-shark-default.png" alt="Pull Shark" title="Pull Shark" width="80" height="80"></a>
+</p>
+
 ## 🚀 Features in volce motors
 
 * **Dynamic Car Showcase**: Browse an interactive grid of available vehicles using reusable card components.
