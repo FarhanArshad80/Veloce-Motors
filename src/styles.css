@@ -1242,6 +1242,99 @@ button {
   font-size: 12px;
 }
 
+/* Alternatives to the vehicle on screen */
+
+.details-similar {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.details-similar h3 {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.details-similar ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.details-similar button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid transparent;
+  background: var(--surface-light);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.details-similar button:hover,
+.details-similar button:focus-visible {
+  border-color: var(--gold);
+  background: var(--surface);
+}
+
+.details-similar img {
+  width: 56px;
+  height: 40px;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.similar-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.similar-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.similar-copy small {
+  color: var(--muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.similar-price {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.similar-price strong {
+  color: var(--gold);
+  font-size: 12px;
+}
+
+.similar-price small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
 /* Monthly-payment estimate */
 
 .finance-panel {

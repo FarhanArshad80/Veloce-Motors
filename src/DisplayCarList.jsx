@@ -1040,6 +1040,12 @@ export default function DisplayCarList() {
             onBookingsChange={setBookings}
             financeTerms={financeTerms}
             onChangeFinanceTerms={handleFinanceTerms}
+            // The whole inventory rather than the filtered grid: the point of
+            // the suggestion is to reach a vehicle the current filters have
+            // already ruled out, and scoring it against what survived them
+            // would only ever offer back what is on screen.
+            inventory={cars}
+            onSelect={setSelectedCar}
           />
         ) : (
           <div className="empty-details">

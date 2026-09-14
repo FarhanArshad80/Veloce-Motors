@@ -1,12 +1,22 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import FinanceCalculator from "./FinanceCalculator";
 import TestDriveForm from "./TestDriveForm";
 import { bookingWhen } from "./bookings";
+import { similarCars } from "./similar";
+import { estimateMonthly, formatMoney, parsePrice } from "./pricing";
 
 export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
+  inventory = [], onSelect,
 }) {
   const [bookingOpen, setBookingOpen] = useState(false);
+
+  // Recomputed when the inventory changes, so a vehicle removed from the
+  // grid stops being offered as an alternative to the one still open.
+  const alternatives = useMemo(
+    () => similarCars(car, inventory),
+    [car, inventory]
+  );
 
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
@@ -117,6 +127,54 @@ export default function CarDetails({
           {booking ? `Test drive · ${bookingWhen(booking)}` : "Book a test drive"}
           <span>→</span>
         </button>
+
+        {/* Below the booking button rather than above it: this is where to
+            go if the answer to this vehicle was no, and putting it in front
+            of the call to action argues against the car the page is for. */}
+        {onSelect && alternatives.length > 0 && (
+          <section className="details-similar">
+            <h3>You might also like</h3>
+
+            <ul>
+              {alternatives.map((option) => {
+                const monthly = estimateMonthly(parsePrice(option.price), financeTerms);
+
+                return (
+                  <li key={option.id}>
+                    <button
+                      type="button"
+                      onClick={() => onSelect(option)}
+                      aria-label={`View ${option.name}`}
+                    >
+                      {option.image && (
+                        <img src={option.image} alt="" loading="lazy" />
+                      )}
+
+                      <span className="similar-copy">
+                        <strong>{option.name}</strong>
+
+                        <small>
+                          {option.year || "—"} · {option.type || "Other"}
+                          {option.mileage ? ` · ${option.mileage}` : ""}
+                        </small>
+                      </span>
+
+                      <span className="similar-price">
+                        <strong>{option.price || "On request"}</strong>
+
+                        {/* Quoted on the same terms as everything else on
+                            the page, or left out entirely — a car with no
+                            price has no payment, and "$0/mo" reads as an
+                            offer. */}
+                        {monthly > 0 && <small>{formatMoney(monthly)}/mo</small>}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {bookingOpen && (
           <TestDriveForm
