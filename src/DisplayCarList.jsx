@@ -3,6 +3,7 @@ import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
 import { bookingForCar, recallBookings } from "./bookings";
+import { pushRecent, recallRecent, saveRecent } from "./recent";
 import {
   estimateMonthly,
   parseMileage,
@@ -328,6 +329,10 @@ export default function DisplayCarList() {
   // grid now quotes a monthly figure and they all have to be quoting the same
   // deal. Moving a slider in the sidebar re-prices the whole inventory.
   const [financeTerms, setFinanceTerms] = useState(recallFinanceTerms);
+  // Where this browser has already been. Held apart from the shortlist on
+  // purpose: starring a car is a judgement, and most of what gets opened is
+  // opened to find out whether it deserves one.
+  const [recent, setRecent] = useState(recallRecent);
   const [comparing, setComparing] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   // The vehicle most recently removed, held with where it sat and whether it
@@ -342,6 +347,24 @@ export default function DisplayCarList() {
   useEffect(() => {
     localStorage.setItem("veloce-shortlist", JSON.stringify(shortlist));
   }, [shortlist]);
+
+  // Recorded on open rather than on close, so a car is in the row the moment
+  // it is on screen and not only once something else has replaced it.
+  useEffect(() => {
+    if (!selectedCar) return;
+
+    setRecent((currentRecent) => {
+      const next = pushRecent(currentRecent, selectedCar.id);
+
+      if (next[0] === currentRecent[0] && next.length === currentRecent.length) {
+        return currentRecent;
+      }
+
+      saveRecent(next);
+
+      return next;
+    });
+  }, [selectedCar]);
 
   // Writes the current filters back to the address bar. replaceState rather
   // than pushState: typing six letters into the search box is one act of
@@ -409,6 +432,22 @@ export default function DisplayCarList() {
     });
   }, [cars]);
 
+  // A vehicle that has left the inventory cannot be returned to, so it
+  // should not be offered. Same reasoning as the shortlist prune above.
+  useEffect(() => {
+    setRecent((currentRecent) => {
+      const remaining = currentRecent.filter((id) =>
+        cars.some((car) => car.id === id)
+      );
+
+      if (remaining.length === currentRecent.length) return currentRecent;
+
+      saveRecent(remaining);
+
+      return remaining;
+    });
+  }, [cars]);
+
   // Comparison follows the shortlist, in inventory order so the columns do
   // not reshuffle each time a star is toggled.
   const comparedCars = useMemo(
@@ -423,6 +462,19 @@ export default function DisplayCarList() {
       setComparing(false);
     }
   }, [comparing, comparedCars]);
+
+  // In the order they were opened, and never including the one already in
+  // the sidebar — a chip that reopens what is on screen does nothing, and
+  // the car you are reading about is the one place you do not need a way
+  // back to.
+  const recentCars = useMemo(
+    () =>
+      recent
+        .filter((id) => id !== selectedCar?.id)
+        .map((id) => cars.find((car) => car.id === id))
+        .filter(Boolean),
+    [recent, cars, selectedCar]
+  );
 
   const categories = useMemo(
     () => ["All", ...new Set(cars.map((car) => car.type || "Other"))],
@@ -956,6 +1008,25 @@ export default function DisplayCarList() {
                 Clear all
               </button>
             )}
+          </div>
+        )}
+
+        {/* A history rather than a filter, so it sits below the row that
+            describes the filters and does not pretend to be one. */}
+        {recentCars.length > 0 && (
+          <div className="recent-row">
+            <span className="recent-label">Recently viewed</span>
+
+            {recentCars.map((car) => (
+              <button
+                key={car.id}
+                className="recent-chip"
+                onClick={() => setSelectedCar(car)}
+                aria-label={`Reopen ${car.name}`}
+              >
+                {car.name}
+              </button>
+            ))}
           </div>
         )}
 

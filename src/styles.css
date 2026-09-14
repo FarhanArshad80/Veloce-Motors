@@ -1242,6 +1242,42 @@ button {
   font-size: 12px;
 }
 
+/* Where this browser has already been. Quieter again than the active
+   filters: those say what the grid is doing now, this only offers a way
+   back to something that has been left. */
+.recent-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -8px 0 24px;
+}
+
+.recent-label {
+  color: var(--silver);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.5;
+}
+
+.recent-chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: transparent;
+  color: var(--silver);
+  cursor: pointer;
+  font-size: 11px;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.recent-chip:hover,
+.recent-chip:focus-visible {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 /* Alternatives to the vehicle on screen */
 
 .details-similar {
