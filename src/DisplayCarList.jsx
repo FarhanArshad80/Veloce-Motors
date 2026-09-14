@@ -113,6 +113,11 @@ const sortOptions = [
   // has no usable price: that one has no monthly figure at all, and belongs
   // at the end of this order rather than at the top of it.
   { value: "monthly-asc", label: "Monthly: Low to High" },
+  // Mileage bands ask "no more than this much"; this asks "least of all",
+  // which is the other half of the same question and the one a shortlist is
+  // usually built on. A vehicle with no readable odometer figure sorts last
+  // rather than first, where a zero would read as delivery mileage.
+  { value: "mileage-asc", label: "Mileage: Lowest first" },
   { value: "year-desc", label: "Year: Newest first" },
   { value: "name-asc", label: "Name: A–Z" },
 ];
@@ -575,6 +580,17 @@ export default function DisplayCarList() {
 
           // A vehicle nobody can be quoted on sinks rather than leading a
           // list ordered by cheapest, where a zero would read as free.
+          if (left <= 0) return right <= 0 ? 0 : 1;
+          if (right <= 0) return -1;
+
+          return left - right;
+        });
+        break;
+      case "mileage-asc":
+        sorted.sort((a, b) => {
+          const left = parseMileage(a.mileage);
+          const right = parseMileage(b.mileage);
+
           if (left <= 0) return right <= 0 ? 0 : 1;
           if (right <= 0) return -1;
 
