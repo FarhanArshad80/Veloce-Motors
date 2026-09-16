@@ -3,11 +3,12 @@ import FinanceCalculator from "./FinanceCalculator";
 import TestDriveForm from "./TestDriveForm";
 import { bookingWhen } from "./bookings";
 import { similarCars } from "./similar";
+import { NOTE_LIMIT } from "./notes";
 import { estimateMonthly, formatMoney, parsePrice } from "./pricing";
 
 export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
-  inventory = [], onSelect,
+  inventory = [], onSelect, note = "", onNoteChange,
 }) {
   const [bookingOpen, setBookingOpen] = useState(false);
 
@@ -116,6 +117,27 @@ export default function CarDetails({
             <strong>{car.power || "Performance spec"}</strong>
           </div>
         </div>
+
+        {/* Under the specs, because it is usually a reaction to them — "only
+            two owners but the mileage is high for the year" is a note written
+            with that grid in front of you. */}
+        <section className="details-note">
+          <label htmlFor="car-note">Your notes</label>
+
+          <textarea
+            id="car-note"
+            rows={3}
+            value={note}
+            maxLength={NOTE_LIMIT}
+            onChange={(event) => onNoteChange?.(car.id, event.target.value)}
+            placeholder="Ask about the service history…"
+          />
+
+          <p className="details-note-hint">
+            Kept on this device, against this vehicle. Nobody at the showroom
+            sees it.
+          </p>
+        </section>
 
         {/* The button says what pressing it will do. With a drive already in
             the diary that is not "book" — it is "look at the one you have",

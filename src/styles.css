@@ -2569,3 +2569,73 @@ button {
     justify-content: flex-start;
   }
 }
+
+/* ---- Vehicle notes --------------------------------------------------- */
+
+/* The same pill as the booked badge above it, in the neutral silver rather
+   than gold: an appointment is a commitment, a note is only a bookmark, and
+   a card carrying both should not shout twice. */
+.car-card-noted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  padding: 3px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--silver);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.details-note {
+  margin-top: 22px;
+}
+
+.details-note label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.details-note textarea {
+  width: 100%;
+  box-sizing: border-box;
+  /* Vertical only. Dragging a textarea wider than the sidebar it sits in
+     breaks the column beside it. */
+  resize: vertical;
+  min-height: 72px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--surface-light);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  transition: border-color 0.25s ease;
+}
+
+.details-note textarea::placeholder {
+  color: var(--muted);
+}
+
+.details-note textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+/* Said once, under the box. Anything typed here is stored in this browser
+   and nowhere else, and somebody writing "offer 2k under asking" deserves to
+   know that before they write it rather than after. */
+.details-note-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}

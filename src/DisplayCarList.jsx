@@ -6,6 +6,14 @@ import BookingsPanel from "./BookingsPanel";
 import { bookingForCar, recallBookings, removeBooking, saveBookings } from "./bookings";
 import { pushRecent, recallRecent, saveRecent } from "./recent";
 import {
+  hasNote,
+  noteForCar,
+  pruneNotes,
+  recallNotes,
+  saveNotes,
+  setNote,
+} from "./notes";
+import {
   estimateMonthly,
   parseMileage,
   parsePrice,
@@ -336,6 +344,7 @@ export default function DisplayCarList() {
   const [recent, setRecent] = useState(recallRecent);
   const [comparing, setComparing] = useState(false);
   const [diaryOpen, setDiaryOpen] = useState(false);
+  const [notes, setNotes] = useState(recallNotes);
   const [copiedLink, setCopiedLink] = useState(false);
   // The vehicle most recently removed, held with where it sat and whether it
   // was starred, so putting it back restores the listing rather than
@@ -450,6 +459,23 @@ export default function DisplayCarList() {
     });
   }, [cars]);
 
+  // And the notes, for the same reason again: a note attached to a vehicle
+  // that has left the inventory can never be read or deleted from anywhere
+  // on screen, so it would sit in storage forever describing nothing.
+  useEffect(() => {
+    setNotes((currentNotes) => {
+      const remaining = pruneNotes(currentNotes, cars);
+
+      if (Object.keys(remaining).length === Object.keys(currentNotes).length) {
+        return currentNotes;
+      }
+
+      saveNotes(remaining);
+
+      return remaining;
+    });
+  }, [cars]);
+
   // Comparison follows the shortlist, in inventory order so the columns do
   // not reshuffle each time a star is toggled.
   const comparedCars = useMemo(
@@ -464,6 +490,17 @@ export default function DisplayCarList() {
       setComparing(false);
     }
   }, [comparing, comparedCars]);
+
+  // Saved on every keystroke rather than behind a button. A note is one or
+  // two lines written while looking at something else, and the moment it
+  // would be lost is the moment the tab is closed without a thought — which
+  // is precisely when nobody is going to press Save.
+  const handleNoteChange = (carId, text) => {
+    const next = setNote(notes, carId, text);
+
+    saveNotes(next);
+    setNotes(next);
+  };
 
   // Cancelling from the diary. The same two steps the booking form takes —
   // write it down, then tell the page — because a cancellation that only
@@ -1109,6 +1146,7 @@ export default function DisplayCarList() {
               onDelete={handleDeleteCar}
               onToggleShortlist={handleToggleShortlist}
               financeTerms={financeTerms}
+              hasNote={hasNote(notes, car.id)}
             />
           ))}
 
@@ -1173,6 +1211,8 @@ export default function DisplayCarList() {
             // would only ever offer back what is on screen.
             inventory={cars}
             onSelect={setSelectedCar}
+            note={noteForCar(notes, selectedCar.id)}
+            onNoteChange={handleNoteChange}
           />
         ) : (
           <div className="empty-details">

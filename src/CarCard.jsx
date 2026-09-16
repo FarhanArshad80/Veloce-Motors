@@ -124,6 +124,7 @@ export default function CarCard({
   onToggleShortlist,
   booking = null,
   financeTerms = DEFAULT_FINANCE_TERMS,
+  hasNote = false,
 }) {
   const carType = getCarType(car);
   const imageSource = car.image || getFallbackImage(car);
@@ -243,6 +244,12 @@ export default function CarCard({
             Test drive · {bookingWhen(booking)}
           </p>
         )}
+
+        {/* That there is a note, not what it says. The grid is for scanning,
+            and the note is written to be read beside the specs it is about —
+            but a card giving no sign of one means opening six vehicles to
+            find the one already thought about. */}
+        {hasNote && <p className="car-card-noted">✎ Your notes</p>}
 
         <p className="car-card-description">
           {description}
