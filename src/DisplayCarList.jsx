@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
-import { bookingForCar, recallBookings } from "./bookings";
+import BookingsPanel from "./BookingsPanel";
+import { bookingForCar, recallBookings, removeBooking, saveBookings } from "./bookings";
 import { pushRecent, recallRecent, saveRecent } from "./recent";
 import {
   estimateMonthly,
@@ -334,6 +335,7 @@ export default function DisplayCarList() {
   // opened to find out whether it deserves one.
   const [recent, setRecent] = useState(recallRecent);
   const [comparing, setComparing] = useState(false);
+  const [diaryOpen, setDiaryOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   // The vehicle most recently removed, held with where it sat and whether it
   // was starred, so putting it back restores the listing rather than
@@ -462,6 +464,33 @@ export default function DisplayCarList() {
       setComparing(false);
     }
   }, [comparing, comparedCars]);
+
+  // Cancelling from the diary. The same two steps the booking form takes —
+  // write it down, then tell the page — because a cancellation that only
+  // updated the screen would come back on the next reload.
+  //
+  // The panel is left open on an empty diary rather than closed, unlike the
+  // comparison above: cancelling the last appointment is a deliberate act,
+  // and having the panel disappear out from under the hand that did it reads
+  // as something having gone wrong.
+  const handleCancelBooking = (id) => {
+    const next = removeBooking(bookings, id);
+
+    saveBookings(next);
+    setBookings(next);
+  };
+
+  // Opening a vehicle from its appointment closes the diary behind it. The
+  // panel sits above the grid, so leaving it open would scroll the car it was
+  // asked to show off the bottom of the screen.
+  const handleOpenBooked = (carId) => {
+    const car = cars.find((entry) => entry.id === carId);
+
+    if (!car) return;
+
+    setSelectedCar(car);
+    setDiaryOpen(false);
+  };
 
   // In the order they were opened, and never including the one already in
   // the sidebar — a chip that reopens what is on screen does nothing, and
@@ -880,6 +909,24 @@ export default function DisplayCarList() {
               <span className="filter-count">{shortlist.length}</span>
             </button>
 
+            {/* Only once there is something to show. An empty diary is a
+                button that opens a panel saying nothing is booked, which is
+                a control earning its place on the toolbar by disappointing
+                whoever presses it. */}
+            {bookings.length > 0 && (
+              <button
+                className={
+                  diaryOpen ? "shortlist-toggle active" : "shortlist-toggle"
+                }
+                onClick={() => setDiaryOpen((open) => !open)}
+                aria-pressed={diaryOpen}
+                title="The test drives you have booked"
+              >
+                ◷ Test drives
+                <span className="filter-count">{bookings.length}</span>
+              </button>
+            )}
+
             <button
               className={
                 comparing ? "shortlist-toggle active" : "shortlist-toggle"
@@ -1028,6 +1075,15 @@ export default function DisplayCarList() {
               </button>
             ))}
           </div>
+        )}
+
+        {diaryOpen && (
+          <BookingsPanel
+            bookings={bookings}
+            onClose={() => setDiaryOpen(false)}
+            onCancel={handleCancelBooking}
+            onSelect={handleOpenBooked}
+          />
         )}
 
         {comparing && comparedCars.length >= 2 && (

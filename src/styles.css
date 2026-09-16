@@ -2445,3 +2445,127 @@ button {
     padding: 28px 20px;
   }
 }
+
+/* ---- Test drive diary ----------------------------------------------- */
+
+/* Shares the shell of the comparison panel above it — same border, same
+   surface, same header — because they are the same kind of thing: a panel
+   that opens over the grid from a toolbar toggle. */
+.bookings-panel {
+  margin-bottom: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+  animation: fadeIn 0.35s ease both;
+}
+
+.bookings-empty {
+  margin: 0;
+  padding: 26px 24px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.bookings-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bookings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* The last appointment should not draw a line under itself — the panel's own
+   border is already there. */
+.bookings-row:last-child {
+  border-bottom: none;
+}
+
+.bookings-when {
+  min-width: 0;
+}
+
+/* The time leads. Which car it is for is the second question, and on a
+   general showroom visit there is no answer to it at all. */
+.bookings-time {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+
+.bookings-car,
+.bookings-car-plain {
+  display: block;
+  margin: 5px 0 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-align: left;
+}
+
+.bookings-car {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.25s ease;
+}
+
+.bookings-car:hover {
+  color: var(--gold);
+}
+
+.bookings-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.bookings-ics,
+.bookings-cancel {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+
+.bookings-ics:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* Cancelling is the one action here that cannot be taken back, so it is the
+   one that turns red rather than gold on the way to being pressed. */
+.bookings-cancel:hover {
+  border-color: #b4534f;
+  color: #d97570;
+}
+
+/* On a phone the time and the two buttons stop fitting on one line, and
+   squeezing them makes the buttons too small to hit accurately. */
+@media (max-width: 520px) {
+  .bookings-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .bookings-actions {
+    justify-content: flex-start;
+  }
+}
