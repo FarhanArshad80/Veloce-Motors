@@ -5,6 +5,7 @@ import CompareTable from "./CompareTable";
 import BookingsPanel from "./BookingsPanel";
 import { bookingForCar, recallBookings, removeBooking, saveBookings } from "./bookings";
 import { pushRecent, recallRecent, saveRecent } from "./recent";
+import { addSearch, recallSearches, removeSearch, saveSearches, searchKey } from "./searches";
 import {
   hasNote,
   noteForCar,
@@ -345,6 +346,7 @@ export default function DisplayCarList() {
   const [comparing, setComparing] = useState(false);
   const [diaryOpen, setDiaryOpen] = useState(false);
   const [notes, setNotes] = useState(recallNotes);
+  const [searches, setSearches] = useState(recallSearches);
   const [copiedLink, setCopiedLink] = useState(false);
   // The vehicle most recently removed, held with where it sat and whether it
   // was starred, so putting it back restores the listing rather than
@@ -819,6 +821,63 @@ export default function DisplayCarList() {
     }
   }
 
+  // What a saved search would keep. The shared selection is left out — see
+  // searches.js — so a view narrowed only by somebody else's link has
+  // nothing of its own to save.
+  const currentFilters = {
+    query,
+    activeFilter,
+    priceBand,
+    mileageBand,
+    monthlyBand,
+    sortBy,
+    shortlistOnly,
+  };
+  const currentSearchKey = searchKey(currentFilters);
+  const keepableFilters = activeFilters.filter((filter) => filter.key !== "pick");
+  const searchSaved = searches.some((search) => search.key === currentSearchKey);
+
+  // Named from the filter pills themselves rather than asked for. A prompt
+  // for a name is a small form in the way of a one-click action, and the
+  // pills already say exactly what the search is in words the page chose.
+  function handleSaveSearch() {
+    if (keepableFilters.length === 0) return;
+
+    const sort = sortOptions.find((option) => option.value === sortBy);
+    const parts = keepableFilters.map((filter) => filter.label);
+
+    if (sort && sortBy !== "default") parts.push(sort.label);
+
+    const next = addSearch(searches, parts.join(" · "), currentFilters);
+
+    saveSearches(next);
+    setSearches(next);
+  }
+
+  function handleForgetSearch(key) {
+    const next = removeSearch(searches, key);
+
+    saveSearches(next);
+    setSearches(next);
+  }
+
+  // Every value is checked against what the page offers today, the same way
+  // a link is. A price band retired since the search was saved falls back to
+  // "any" rather than leaving the grid filtered by a band with no control
+  // on screen to show it or take it off.
+  function applySearch({ filters }) {
+    setQuery(filters.query);
+    setActiveFilter(filters.activeFilter);
+    setPriceBand(priceBands.some((b) => b.value === filters.priceBand) ? filters.priceBand : "any");
+    setMileageBand(mileageBands.some((b) => b.value === filters.mileageBand) ? filters.mileageBand : "any");
+    setMonthlyBand(monthlyBands.some((b) => b.value === filters.monthlyBand) ? filters.monthlyBand : "any");
+    setSortBy(sortOptions.some((o) => o.value === filters.sortBy) ? filters.sortBy : "default");
+    setShortlistOnly(filters.shortlistOnly);
+    // Applying a search is starting a new view, and somebody else's picks
+    // narrowing it underneath would make the saved search look broken.
+    setSharedPick(null);
+  }
+
   function resetFilters() {
     setQuery("");
     setActiveFilter("All");
@@ -1092,6 +1151,55 @@ export default function DisplayCarList() {
                 Clear all
               </button>
             )}
+
+            {keepableFilters.length > 0 && (
+              <button
+                className={searchSaved ? "active-filter-save is-saved" : "active-filter-save"}
+                onClick={handleSaveSearch}
+                disabled={searchSaved}
+                title={
+                  searchSaved
+                    ? "This search is already in your saved searches"
+                    : "Keep this search for next time"
+                }
+              >
+                {searchSaved ? "✓ Search saved" : "Save search"}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Shown whatever the grid is doing — the moment somebody reaches
+            for a saved search is usually the moment nothing is filtered. */}
+        {searches.length > 0 && (
+          <div className="recent-row saved-searches">
+            <span className="recent-label">Saved searches</span>
+
+            {searches.map((search) => {
+              const on = search.key === currentSearchKey;
+
+              return (
+                <span
+                  key={search.key}
+                  className={on ? "saved-search is-on" : "saved-search"}
+                >
+                  <button
+                    className="saved-search-apply"
+                    onClick={() => applySearch(search)}
+                    aria-pressed={on}
+                  >
+                    {search.label}
+                  </button>
+                  <button
+                    className="saved-search-remove"
+                    onClick={() => handleForgetSearch(search.key)}
+                    aria-label={`Forget the saved search ${search.label}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              );
+            })}
           </div>
         )}
 

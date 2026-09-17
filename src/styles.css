@@ -2639,3 +2639,83 @@ button {
   font-size: 11px;
   line-height: 1.5;
 }
+
+/* ---- Saved searches -------------------------------------------------- */
+
+/* On the "Filtering by" row, after Clear all, because it is an action on
+   that row's contents — keep these — where Clear all throws them away. Gold
+   outline rather than underlined text, so the two are never mistaken for
+   each other. */
+.active-filter-save {
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: 999px;
+  padding: 5px 11px;
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 11px;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.active-filter-save:hover:not(:disabled) {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+/* Already kept: a statement, not a button waiting to be pressed again. */
+.active-filter-save.is-saved {
+  border-color: transparent;
+  color: var(--silver);
+  cursor: default;
+  opacity: 0.75;
+}
+
+.saved-search {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  transition: border-color 0.25s ease;
+}
+
+.saved-search:hover,
+.saved-search:focus-within {
+  border-color: var(--gold);
+}
+
+/* The search on screen right now. Gold like an active category chip, so the
+   row says which of these the grid is already showing. */
+.saved-search.is-on {
+  border-color: var(--gold);
+  background: rgba(212, 175, 55, 0.12);
+}
+
+.saved-search-apply,
+.saved-search-remove {
+  border: none;
+  background: transparent;
+  color: var(--silver);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.saved-search-apply {
+  padding: 5px 4px 5px 11px;
+}
+
+.saved-search.is-on .saved-search-apply,
+.saved-search-apply:hover {
+  color: var(--gold);
+}
+
+.saved-search-remove {
+  padding: 5px 10px 5px 6px;
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0.55;
+}
+
+.saved-search-remove:hover {
+  opacity: 1;
+  color: #d97570;
+}
