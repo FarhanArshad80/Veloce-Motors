@@ -240,6 +240,7 @@ function getInitialFilters() {
       priceBand: "any",
       mileageBand: "any",
       monthlyBand: "any",
+      colour: "All",
       shortlistOnly: false,
       sharedPick: null,
       openCar: null,
@@ -261,6 +262,10 @@ function getInitialFilters() {
     priceBand: priceBands.some((option) => option.value === band) ? band : "any",
     mileageBand: mileageBands.some((option) => option.value === miles) ? miles : "any",
     monthlyBand: monthlyBands.some((option) => option.value === monthly) ? monthly : "any",
+    // Checked against the inventory later, like the category above and for
+    // the same reason: the colours on offer come from the stock, not from a
+    // list this function could know about.
+    colour: params.get("colour") || "All",
     shortlistOnly: params.get("saved") === "1",
     sharedPick: parsePick(params.get("pick")),
     // One vehicle, open. Checked against the inventory when the page starts
@@ -329,6 +334,7 @@ export default function DisplayCarList() {
   const [priceBand, setPriceBand] = useState(initialFilters.priceBand);
   const [mileageBand, setMileageBand] = useState(initialFilters.mileageBand);
   const [monthlyBand, setMonthlyBand] = useState(initialFilters.monthlyBand);
+  const [colour, setColour] = useState(initialFilters.colour);
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
   // Someone else's picks, from the link that was opened. Deliberately kept
@@ -397,6 +403,7 @@ export default function DisplayCarList() {
     apply("price", priceBand, "any");
     apply("miles", mileageBand, "any");
     apply("mo", monthlyBand, "any");
+    apply("colour", colour, "All");
     apply("sort", sortBy, "default");
     apply("saved", shortlistOnly ? "1" : "", "");
     apply("pick", sharedPick ? sharedPick.join(",") : "", "");
@@ -410,7 +417,7 @@ export default function DisplayCarList() {
       window.history.replaceState(null, "", next);
     }
   }, [
-    query, activeFilter, priceBand, mileageBand, monthlyBand, sortBy,
+    query, activeFilter, priceBand, mileageBand, monthlyBand, colour, sortBy,
     shortlistOnly, sharedPick, selectedCar,
   ]);
 
@@ -666,19 +673,66 @@ export default function DisplayCarList() {
     return mileageMatches.filter((car) => monthlyWithin(car, band, financeTerms));
   }, [mileageMatches, monthlyBand, financeTerms]);
 
-  const categoryCounts = useMemo(() => {
+  // The colours actually in stock, in the order a person would list them.
+  // Built from the inventory rather than fixed, because a hard-coded list
+  // would offer "Green" long after the last green car had gone — and would
+  // silently miss the colour of anything added later.
+  const colourOptions = useMemo(() => {
+    const seen = new Map();
+
+    for (const car of cars) {
+      const name = (car.color || "").trim();
+      if (!name) continue;
+
+      const key = name.toLowerCase();
+      if (!seen.has(key)) seen.set(key, name);
+    }
+
+    return [...seen.values()].sort((a, b) => a.localeCompare(b));
+  }, [cars]);
+
+  const colourCounts = useMemo(() => {
     const counts = { All: monthlyMatches.length };
 
-    for (const car of monthlyMatches) {
+    for (const name of colourOptions) {
+      counts[name] = monthlyMatches.filter(
+        (car) => (car.color || "").toLowerCase() === name.toLowerCase()
+      ).length;
+    }
+
+    return counts;
+  }, [monthlyMatches, colourOptions]);
+
+  const colourMatches = useMemo(() => {
+    if (colour === "All") return monthlyMatches;
+
+    return monthlyMatches.filter(
+      (car) => (car.color || "").toLowerCase() === colour.toLowerCase()
+    );
+  }, [monthlyMatches, colour]);
+
+  // A colour that has left the inventory cannot be chosen out of again, and
+  // the select would be showing a value it no longer offers — so the filter
+  // stands down rather than leaving an empty grid with no visible cause.
+  useEffect(() => {
+    if (colour !== "All" && !colourOptions.some((name) => name.toLowerCase() === colour.toLowerCase())) {
+      setColour("All");
+    }
+  }, [colourOptions, colour]);
+
+  const categoryCounts = useMemo(() => {
+    const counts = { All: colourMatches.length };
+
+    for (const car of colourMatches) {
       const type = car.type || "Other";
       counts[type] = (counts[type] || 0) + 1;
     }
 
     return counts;
-  }, [mileageMatches]);
+  }, [colourMatches]);
 
   const filteredCars = useMemo(() => {
-    const matching = monthlyMatches.filter(
+    const matching = colourMatches.filter(
       (car) =>
         activeFilter === "All" ||
         (car.type || "Other") === activeFilter
@@ -728,7 +782,7 @@ export default function DisplayCarList() {
     }
 
     return sorted;
-  }, [monthlyMatches, activeFilter, sortBy, financeTerms]);
+  }, [colourMatches, activeFilter, sortBy, financeTerms]);
 
   // Every narrowing currently in force, each carrying the means to undo just
   // itself. The controls are spread across a search box, three selects and a
@@ -765,6 +819,10 @@ export default function DisplayCarList() {
       });
     }
 
+    if (colour !== "All") {
+      list.push({ key: "colour", label: colour, clear: () => setColour("All") });
+    }
+
     if (shortlistOnly) {
       list.push({ key: "saved", label: "Saved only", clear: () => setShortlistOnly(false) });
     }
@@ -781,11 +839,12 @@ export default function DisplayCarList() {
     }
 
     return list;
-  }, [query, activeFilter, priceBand, mileageBand, monthlyBand, shortlistOnly, sharedPick]);
+  }, [query, activeFilter, priceBand, mileageBand, monthlyBand, colour, shortlistOnly, sharedPick]);
 
   const isNarrowed =
     query.trim() !== "" ||
     activeFilter !== "All" ||
+    colour !== "All" ||
     shortlistOnly ||
     sharedPick !== null ||
     priceBand !== "any" ||
@@ -827,6 +886,7 @@ export default function DisplayCarList() {
   const currentFilters = {
     query,
     activeFilter,
+    colour,
     priceBand,
     mileageBand,
     monthlyBand,
@@ -868,6 +928,7 @@ export default function DisplayCarList() {
   function applySearch({ filters }) {
     setQuery(filters.query);
     setActiveFilter(filters.activeFilter);
+    setColour(filters.colour || "All");
     setPriceBand(priceBands.some((b) => b.value === filters.priceBand) ? filters.priceBand : "any");
     setMileageBand(mileageBands.some((b) => b.value === filters.mileageBand) ? filters.mileageBand : "any");
     setMonthlyBand(monthlyBands.some((b) => b.value === filters.monthlyBand) ? filters.monthlyBand : "any");
@@ -881,6 +942,7 @@ export default function DisplayCarList() {
   function resetFilters() {
     setQuery("");
     setActiveFilter("All");
+    setColour("All");
     setShortlistOnly(false);
     setSharedPick(null);
     setPriceBand("any");
@@ -1093,6 +1155,24 @@ export default function DisplayCarList() {
                 </option>
               ))}
             </select>
+
+            {/* Only when the stock gives something to choose between. One
+                colour in the inventory is not a filter, it is a fact. */}
+            {colourOptions.length > 1 && (
+              <select
+                className="sort-select"
+                value={colour}
+                onChange={(event) => setColour(event.target.value)}
+                aria-label="Filter by colour"
+              >
+                <option value="All">Any colour</option>
+                {colourOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name} ({colourCounts[name] || 0})
+                  </option>
+                ))}
+              </select>
+            )}
 
             <select
               className="sort-select"

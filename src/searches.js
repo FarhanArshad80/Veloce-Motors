@@ -19,6 +19,7 @@ export const SEARCH_LIMIT = 6;
 const FIELDS = [
   "query",
   "activeFilter",
+  "colour",
   "priceBand",
   "mileageBand",
   "monthlyBand",
@@ -42,6 +43,7 @@ function cleanFilters(raw) {
   return {
     query: typeof raw.query === "string" ? raw.query.trim().slice(0, 80) : "",
     activeFilter: text(raw.activeFilter, "All"),
+    colour: text(raw.colour, "All"),
     priceBand: text(raw.priceBand, "any"),
     mileageBand: text(raw.mileageBand, "any"),
     monthlyBand: text(raw.monthlyBand, "any"),
