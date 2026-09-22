@@ -23,6 +23,7 @@ const FIELDS = [
   "priceBand",
   "mileageBand",
   "monthlyBand",
+  "ageBand",
   "sortBy",
   "shortlistOnly",
 ];
@@ -47,6 +48,7 @@ function cleanFilters(raw) {
     priceBand: text(raw.priceBand, "any"),
     mileageBand: text(raw.mileageBand, "any"),
     monthlyBand: text(raw.monthlyBand, "any"),
+    ageBand: text(raw.ageBand, "any"),
     sortBy: text(raw.sortBy, "default"),
     shortlistOnly: raw.shortlistOnly === true,
   };

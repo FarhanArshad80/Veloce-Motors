@@ -155,6 +155,26 @@ const mileageBands = [
   { value: "under-50", label: "Under 50,000 mi", test: (m) => m < 50000 },
 ];
 
+// How old the car is, which is the one thing on a listing that only ever
+// moves in one direction — and the one the mileage cannot stand in for. Two
+// cars with 20,000 miles on them are a three-year-old that was barely driven
+// and a one-year-old that was driven hard, and warranty, finance rates and
+// resale all read those differently.
+//
+// Counted in years from now rather than named as model years, which is the
+// only version of this list that does not need editing every January. Like
+// the mileage bands it is open-ended upwards: nobody shops for "between two
+// and four years old", they shop for "no more than".
+//
+// A car with no readable year is not "old"; it is unknown, and it fails
+// every band rather than being quietly filed under the widest one.
+const ageBands = [
+  { value: "any", label: "Any age", test: () => true },
+  { value: "under-2", label: "Under 2 years old", test: (age) => age < 2 },
+  { value: "under-4", label: "Under 4 years old", test: (age) => age < 4 },
+  { value: "under-7", label: "Under 7 years old", test: (age) => age < 7 },
+];
+
 // The question sticker price cannot answer. Most people do not buy a car with
 // $38,000; they buy it with $600 a month, and whether a given vehicle clears
 // that bar depends entirely on the deposit, term and rate set in the finance
@@ -211,6 +231,25 @@ function findMonthlyBand(value) {
   return monthlyBands.find((band) => band.value === value) || monthlyBands[0];
 }
 
+function findAgeBand(value) {
+  return ageBands.find((band) => band.value === value) || ageBands[0];
+}
+
+// Negative for a model year ahead of the calendar, which is ordinary on a
+// forecourt in autumn and should read as the newest thing in stock rather
+// than being rejected. Null is the unknown case the bands refuse.
+function ageOf(car, thisYear) {
+  const year = Number(car.year);
+
+  return Number.isFinite(year) && year > 1900 ? thisYear - year : null;
+}
+
+function ageWithin(car, band, thisYear) {
+  const age = ageOf(car, thisYear);
+
+  return age !== null && band.test(age);
+}
+
 // A vehicle with no usable price has no monthly figure either, and the cards
 // already decline to quote one. Letting it through a budget filter would put
 // it in front of someone as an answer to a question it cannot answer.
@@ -240,6 +279,7 @@ function getInitialFilters() {
       priceBand: "any",
       mileageBand: "any",
       monthlyBand: "any",
+      ageBand: "any",
       colour: "All",
       shortlistOnly: false,
       sharedPick: null,
@@ -251,6 +291,7 @@ function getInitialFilters() {
   const band = params.get("price");
   const miles = params.get("miles");
   const monthly = params.get("mo");
+  const age = params.get("age");
 
   return {
     query: params.get("q") || "",
@@ -262,6 +303,7 @@ function getInitialFilters() {
     priceBand: priceBands.some((option) => option.value === band) ? band : "any",
     mileageBand: mileageBands.some((option) => option.value === miles) ? miles : "any",
     monthlyBand: monthlyBands.some((option) => option.value === monthly) ? monthly : "any",
+    ageBand: ageBands.some((option) => option.value === age) ? age : "any",
     // Checked against the inventory later, like the category above and for
     // the same reason: the colours on offer come from the stock, not from a
     // list this function could know about.
@@ -334,6 +376,7 @@ export default function DisplayCarList() {
   const [priceBand, setPriceBand] = useState(initialFilters.priceBand);
   const [mileageBand, setMileageBand] = useState(initialFilters.mileageBand);
   const [monthlyBand, setMonthlyBand] = useState(initialFilters.monthlyBand);
+  const [ageBand, setAgeBand] = useState(initialFilters.ageBand);
   const [colour, setColour] = useState(initialFilters.colour);
   const [shortlist, setShortlist] = useState(getInitialShortlist);
   const [shortlistOnly, setShortlistOnly] = useState(initialFilters.shortlistOnly);
@@ -403,6 +446,7 @@ export default function DisplayCarList() {
     apply("price", priceBand, "any");
     apply("miles", mileageBand, "any");
     apply("mo", monthlyBand, "any");
+    apply("age", ageBand, "any");
     apply("colour", colour, "All");
     apply("sort", sortBy, "default");
     apply("saved", shortlistOnly ? "1" : "", "");
@@ -417,7 +461,7 @@ export default function DisplayCarList() {
       window.history.replaceState(null, "", next);
     }
   }, [
-    query, activeFilter, priceBand, mileageBand, monthlyBand, colour, sortBy,
+    query, activeFilter, priceBand, mileageBand, monthlyBand, ageBand, colour, sortBy,
     shortlistOnly, sharedPick, selectedCar,
   ]);
 
@@ -673,6 +717,33 @@ export default function DisplayCarList() {
     return mileageMatches.filter((car) => monthlyWithin(car, band, financeTerms));
   }, [mileageMatches, monthlyBand, financeTerms]);
 
+  // Read once per render pass rather than per car, and kept in state so a
+  // tab left open across New Year re-prices nothing silently — the bands are
+  // relative to the year this page was opened in, which is the year the
+  // person reading it is living in.
+  const thisYear = useMemo(() => new Date().getFullYear(), []);
+
+  const ageCounts = useMemo(() => {
+    const counts = {};
+
+    for (const band of ageBands) {
+      counts[band.value] =
+        band.value === "any"
+          ? monthlyMatches.length
+          : monthlyMatches.filter((car) => ageWithin(car, band, thisYear)).length;
+    }
+
+    return counts;
+  }, [monthlyMatches, thisYear]);
+
+  const ageMatches = useMemo(() => {
+    if (ageBand === "any") return monthlyMatches;
+
+    const band = findAgeBand(ageBand);
+
+    return monthlyMatches.filter((car) => ageWithin(car, band, thisYear));
+  }, [monthlyMatches, ageBand, thisYear]);
+
   // The colours actually in stock, in the order a person would list them.
   // Built from the inventory rather than fixed, because a hard-coded list
   // would offer "Green" long after the last green car had gone — and would
@@ -692,24 +763,24 @@ export default function DisplayCarList() {
   }, [cars]);
 
   const colourCounts = useMemo(() => {
-    const counts = { All: monthlyMatches.length };
+    const counts = { All: ageMatches.length };
 
     for (const name of colourOptions) {
-      counts[name] = monthlyMatches.filter(
+      counts[name] = ageMatches.filter(
         (car) => (car.color || "").toLowerCase() === name.toLowerCase()
       ).length;
     }
 
     return counts;
-  }, [monthlyMatches, colourOptions]);
+  }, [ageMatches, colourOptions]);
 
   const colourMatches = useMemo(() => {
-    if (colour === "All") return monthlyMatches;
+    if (colour === "All") return ageMatches;
 
-    return monthlyMatches.filter(
+    return ageMatches.filter(
       (car) => (car.color || "").toLowerCase() === colour.toLowerCase()
     );
-  }, [monthlyMatches, colour]);
+  }, [ageMatches, colour]);
 
   // A colour that has left the inventory cannot be chosen out of again, and
   // the select would be showing a value it no longer offers — so the filter
@@ -819,6 +890,14 @@ export default function DisplayCarList() {
       });
     }
 
+    if (ageBand !== "any") {
+      list.push({
+        key: "age",
+        label: findAgeBand(ageBand).label,
+        clear: () => setAgeBand("any"),
+      });
+    }
+
     if (colour !== "All") {
       list.push({ key: "colour", label: colour, clear: () => setColour("All") });
     }
@@ -839,7 +918,7 @@ export default function DisplayCarList() {
     }
 
     return list;
-  }, [query, activeFilter, priceBand, mileageBand, monthlyBand, colour, shortlistOnly, sharedPick]);
+  }, [query, activeFilter, priceBand, mileageBand, monthlyBand, ageBand, colour, shortlistOnly, sharedPick]);
 
   const isNarrowed =
     query.trim() !== "" ||
@@ -849,7 +928,8 @@ export default function DisplayCarList() {
     sharedPick !== null ||
     priceBand !== "any" ||
     mileageBand !== "any" ||
-    monthlyBand !== "any";
+    monthlyBand !== "any" ||
+    ageBand !== "any";
 
   // The clipboard can be refused — an insecure context, a denied permission.
   // The URL is in the address bar either way, so that case says so rather
@@ -890,6 +970,7 @@ export default function DisplayCarList() {
     priceBand,
     mileageBand,
     monthlyBand,
+    ageBand,
     sortBy,
     shortlistOnly,
   };
@@ -932,6 +1013,7 @@ export default function DisplayCarList() {
     setPriceBand(priceBands.some((b) => b.value === filters.priceBand) ? filters.priceBand : "any");
     setMileageBand(mileageBands.some((b) => b.value === filters.mileageBand) ? filters.mileageBand : "any");
     setMonthlyBand(monthlyBands.some((b) => b.value === filters.monthlyBand) ? filters.monthlyBand : "any");
+    setAgeBand(ageBands.some((b) => b.value === filters.ageBand) ? filters.ageBand : "any");
     setSortBy(sortOptions.some((o) => o.value === filters.sortBy) ? filters.sortBy : "default");
     setShortlistOnly(filters.shortlistOnly);
     // Applying a search is starting a new view, and somebody else's picks
@@ -948,6 +1030,7 @@ export default function DisplayCarList() {
     setPriceBand("any");
     setMileageBand("any");
     setMonthlyBand("any");
+    setAgeBand("any");
   }
 
   function handleFinanceTerms(next) {
@@ -1156,6 +1239,20 @@ export default function DisplayCarList() {
               ))}
             </select>
 
+            <select
+              className="sort-select"
+              value={ageBand}
+              onChange={(event) => setAgeBand(event.target.value)}
+              aria-label="Filter by age"
+            >
+              {ageBands.map((band) => (
+                <option key={band.value} value={band.value}>
+                  {band.label}
+                  {band.value === "any" ? "" : ` (${ageCounts[band.value] || 0})`}
+                </option>
+              ))}
+            </select>
+
             {/* Only when the stock gives something to choose between. One
                 colour in the inventory is not a filter, it is a fact. */}
             {colourOptions.length > 1 && (
@@ -1349,6 +1446,8 @@ export default function DisplayCarList() {
                   ? "You have not saved any vehicles yet. Tap the star on a card to shortlist it."
                   : monthlyBand !== "any"
                   ? `Nothing comes in ${findMonthlyBand(monthlyBand).label.toLowerCase()} on these terms. A longer term or a bigger deposit brings the payment down.`
+                  : ageBand !== "any"
+                  ? `Nothing ${findAgeBand(ageBand).label.toLowerCase()} matches. Try allowing a few more years.`
                   : mileageBand !== "any"
                   ? `Nothing ${findMileageBand(mileageBand).label.toLowerCase()} matches. Try allowing more miles.`
                   : priceBand !== "any"
