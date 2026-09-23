@@ -1163,6 +1163,48 @@ button {
   text-transform: uppercase;
 }
 
+/* Stacked under the stock line rather than beside it: the header already
+   gives its width to the vehicle name, and a name of any length would push a
+   button on that row off the end of it. */
+.details-header-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+/* Wider than the star on the card, and labelled. The card has a grid of
+   vehicles to fit and can spend an icon; here there is room to say what
+   pressing it does, and one press in the wrong place costs the shortlist a
+   vehicle somebody had decided on. */
+.details-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--silver);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+
+.details-save:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.details-save.saved {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 .details-price-row {
   display: flex;
   align-items: end;

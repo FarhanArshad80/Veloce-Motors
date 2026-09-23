@@ -9,6 +9,7 @@ import { estimateMonthly, formatMoney, parsePrice } from "./pricing";
 export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
   inventory = [], onSelect, note = "", onNoteChange,
+  shortlisted = false, onToggleShortlist,
 }) {
   const [bookingOpen, setBookingOpen] = useState(false);
 
@@ -67,8 +68,34 @@ export default function CarDetails({
             </p>
           </div>
 
-          <div className="details-status">
-            ● In stock
+          <div className="details-header-side">
+            <div className="details-status">
+              ● In stock
+            </div>
+
+            {/* The star lives on the card in the grid, which is where a
+                vehicle is dismissed from. This panel is where one is
+                actually decided on — the specs, the payment and the note
+                are all here — and the only way to record that decision was
+                to close the panel, find the card again and press the star
+                on it. A shortlist built somewhere other than where the
+                thinking happens is a shortlist that misses things. */}
+            {onToggleShortlist && (
+              <button
+                type="button"
+                className={shortlisted ? "details-save saved" : "details-save"}
+                onClick={() => onToggleShortlist(car.id)}
+                aria-pressed={shortlisted}
+                aria-label={
+                  shortlisted
+                    ? `Remove ${car.name} from your shortlist`
+                    : `Save ${car.name} to your shortlist`
+                }
+              >
+                <span aria-hidden="true">{shortlisted ? "★" : "☆"}</span>
+                {shortlisted ? "Saved" : "Save"}
+              </button>
+            )}
           </div>
         </div>
 

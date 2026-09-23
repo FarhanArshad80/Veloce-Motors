@@ -1500,6 +1500,8 @@ export default function DisplayCarList() {
             onSelect={setSelectedCar}
             note={noteForCar(notes, selectedCar.id)}
             onNoteChange={handleNoteChange}
+            shortlisted={shortlist.includes(selectedCar.id)}
+            onToggleShortlist={handleToggleShortlist}
           />
         ) : (
           <div className="empty-details">
