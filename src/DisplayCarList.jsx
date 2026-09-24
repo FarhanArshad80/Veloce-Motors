@@ -630,10 +630,16 @@ export default function DisplayCarList() {
     [pickedCars, shortlist, shortlistOnly]
   );
 
+  // Each word is looked for on its own, anywhere on the listing. Matching the
+  // whole phrase meant "red coupe" found nothing — the colour and the body
+  // style are separate fields, so the two words were never next to each
+  // other — and people search by stacking up what they want, not by quoting
+  // a listing back at it. Every word has to match, so adding one only ever
+  // narrows the grid, the way typing more is expected to.
   const searchMatches = useMemo(() => {
-    const term = query.trim().toLowerCase();
+    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 
-    if (!term) return savedCars;
+    if (words.length === 0) return savedCars;
 
     return savedCars.filter((car) => {
       const searchableText = `
@@ -641,10 +647,11 @@ export default function DisplayCarList() {
         ${car.color}
         ${car.type}
         ${car.year}
+        ${car.engine}
         ${car.description}
       `.toLowerCase();
 
-      return searchableText.includes(term);
+      return words.every((word) => searchableText.includes(word));
     });
   }, [savedCars, query]);
 
