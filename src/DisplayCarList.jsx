@@ -862,6 +862,19 @@ export default function DisplayCarList() {
     return sorted;
   }, [colourMatches, activeFilter, sortBy, financeTerms]);
 
+  // Where the open vehicle sits in the grid as it is currently filtered and
+  // sorted, so the panel can step to its neighbours. Null when it is not in
+  // the grid at all — opened from a link, the diary or a suggestion the
+  // filters rule out — because "next" from somewhere outside the list has
+  // no honest answer.
+  const selectedPosition = useMemo(() => {
+    if (!selectedCar) return null;
+
+    const index = filteredCars.findIndex((car) => car.id === selectedCar.id);
+
+    return index === -1 ? null : index;
+  }, [filteredCars, selectedCar]);
+
   // Every narrowing currently in force, each carrying the means to undo just
   // itself. The controls are spread across a search box, three selects and a
   // chip row, so "why am I only seeing two cars" was a question you answered
@@ -1509,6 +1522,13 @@ export default function DisplayCarList() {
             onNoteChange={handleNoteChange}
             shortlisted={shortlist.includes(selectedCar.id)}
             onToggleShortlist={handleToggleShortlist}
+            position={selectedPosition}
+            resultCount={filteredCars.length}
+            onStep={(offset) => {
+              const next = filteredCars[selectedPosition + offset];
+
+              if (next) setSelectedCar(next);
+            }}
           />
         ) : (
           <div className="empty-details">

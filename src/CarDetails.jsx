@@ -10,6 +10,7 @@ export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
   inventory = [], onSelect, note = "", onNoteChange,
   shortlisted = false, onToggleShortlist,
+  position = null, resultCount = 0, onStep,
 }) {
   const [bookingOpen, setBookingOpen] = useState(false);
 
@@ -53,6 +54,37 @@ export default function CarDetails({
       </div>
 
       <div className="details-content">
+        {/* Going through a filtered grid one car at a time meant reading the
+            panel, scrolling back up to find the card after the one just
+            read, and scrolling down again — for every vehicle. Stepping from
+            here keeps the reading in one place. Hidden when this car is not
+            in the grid, or is the only thing in it. */}
+        {onStep && position !== null && resultCount > 1 && (
+          <nav className="details-stepper" aria-label="Step through results">
+            <button
+              type="button"
+              onClick={() => onStep(-1)}
+              disabled={position === 0}
+              aria-label="Previous vehicle in the results"
+            >
+              ←
+            </button>
+
+            <span>
+              {position + 1} of {resultCount}
+            </span>
+
+            <button
+              type="button"
+              onClick={() => onStep(1)}
+              disabled={position === resultCount - 1}
+              aria-label="Next vehicle in the results"
+            >
+              →
+            </button>
+          </nav>
+        )}
+
         <div className="details-header">
           <div>
             <p className="details-eyebrow">
