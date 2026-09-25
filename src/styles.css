@@ -1072,6 +1072,28 @@ button {
   font-size: 13px;
 }
 
+/* Pills rather than buttons, borrowed from the filter readout, because
+   each one names a filter the same way the readout does and takes it off
+   the same way. */
+.empty-loosen {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.empty-loosen p {
+  flex-basis: 100%;
+  margin-bottom: 4px;
+}
+
+.empty-loosen-count {
+  color: var(--gold);
+  font-weight: 500;
+}
+
 .reset-filters {
   margin-top: 18px;
   border: 1px solid var(--border);

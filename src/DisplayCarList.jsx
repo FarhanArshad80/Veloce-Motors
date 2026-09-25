@@ -259,6 +259,24 @@ function monthlyWithin(car, band, terms) {
   return monthly > 0 && band.test(monthly);
 }
 
+// Everything the search box looks through, in one string. Shared by the
+// search itself and by the empty grid's suggestions, which have to agree
+// with it about what a word matches.
+function searchableText(car) {
+  return `
+    ${car.name}
+    ${car.color}
+    ${car.type}
+    ${car.year}
+    ${car.engine}
+    ${car.description}
+  `.toLowerCase();
+}
+
+function queryWords(query) {
+  return query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+}
+
 // A narrowed inventory is a thing people send to each other — "here, the
 // SUVs under $50k" — and a thing they expect the back button to return them
 // to. Keeping the filters in the query string makes both work, and costs a
@@ -638,21 +656,14 @@ export default function DisplayCarList() {
   // a listing back at it. Every word has to match, so adding one only ever
   // narrows the grid, the way typing more is expected to.
   const searchMatches = useMemo(() => {
-    const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    const words = queryWords(query);
 
     if (words.length === 0) return savedCars;
 
     return savedCars.filter((car) => {
-      const searchableText = `
-        ${car.name}
-        ${car.color}
-        ${car.type}
-        ${car.year}
-        ${car.engine}
-        ${car.description}
-      `.toLowerCase();
+      const text = searchableText(car);
 
-      return words.every((word) => searchableText.includes(word));
+      return words.every((word) => text.includes(word));
     });
   }, [savedCars, query]);
 
@@ -951,6 +962,56 @@ export default function DisplayCarList() {
     mileageBand !== "any" ||
     monthlyBand !== "any" ||
     ageBand !== "any";
+
+  // When the filters together leave nothing, which one of them is in the
+  // way. The empty grid used to offer a single choice — Clear filters — which
+  // threw away five careful choices to undo the one that did not fit, and
+  // left the person to rebuild the rest by hand and find the culprit by
+  // elimination.
+  //
+  // Each active filter is tried on its own being taken away, with every
+  // other one still applied, and only the ones that would bring something
+  // back are offered. Counted against the whole inventory, so the number on
+  // the button is what pressing it will show. Worked out only for an empty
+  // grid, which is the only time anybody reads it.
+  function looseningOptions() {
+    if (filteredCars.length > 0 || activeFilters.length < 2) return [];
+
+    const words = queryWords(query);
+    const tests = {
+      pick: (car) => !sharedPick || sharedPick.includes(car.id),
+      saved: (car) => !shortlistOnly || shortlist.includes(car.id),
+      q: (car) => {
+        const text = searchableText(car);
+
+        return words.every((word) => text.includes(word));
+      },
+      price: (car) => findBand(priceBand).test(parsePrice(car.price)),
+      miles: (car) => findMileageBand(mileageBand).test(parseMileage(car.mileage)),
+      mo: (car) =>
+        monthlyBand === "any" ||
+        monthlyWithin(car, findMonthlyBand(monthlyBand), financeTerms),
+      age: (car) => ageBand === "any" || ageWithin(car, findAgeBand(ageBand), thisYear),
+      colour: (car) =>
+        colour === "All" || (car.color || "").toLowerCase() === colour.toLowerCase(),
+      type: (car) => activeFilter === "All" || (car.type || "Other") === activeFilter,
+    };
+
+    return activeFilters
+      .map((filter) => {
+        const others = activeFilters
+          .filter((other) => other.key !== filter.key)
+          .map((other) => tests[other.key]);
+
+        return {
+          ...filter,
+          count: cars.filter((car) => others.every((test) => test(car))).length,
+        };
+      })
+      .filter((option) => option.count > 0);
+  }
+
+  const loosenings = looseningOptions();
 
   // The clipboard can be refused — an insecure context, a denied permission.
   // The URL is in the address bar either way, so that case says so rather
@@ -1496,6 +1557,23 @@ export default function DisplayCarList() {
                   ? `Nothing in the ${findBand(priceBand).label.toLowerCase()} band matches. Try a wider budget.`
                   : "Try another search term or category."}
               </p>
+
+              {loosenings.length > 0 && (
+                <div className="empty-loosen">
+                  <p>Or drop just one of them:</p>
+
+                  {loosenings.map((option) => (
+                    <button
+                      key={option.key}
+                      className="active-filter"
+                      onClick={option.clear}
+                    >
+                      Without {option.label}
+                      <b className="empty-loosen-count">{option.count}</b>
+                    </button>
+                  ))}
+                </div>
+              )}
 
               <button className="reset-filters" onClick={resetFilters}>
                 Clear filters
