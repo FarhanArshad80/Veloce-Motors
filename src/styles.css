@@ -2238,6 +2238,18 @@ button {
   font-weight: 500;
 }
 
+/* A note is a sentence or two rather than a figure, so it wraps inside a
+   column of its own width instead of stretching the row across the page. */
+.compare-table td.compare-note {
+  min-width: 180px;
+  max-width: 260px;
+  white-space: pre-wrap;
+  vertical-align: top;
+  color: var(--silver);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .compare-table tbody tr:last-child th,
 .compare-table tbody tr:last-child td {
   border-bottom: none;

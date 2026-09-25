@@ -1,5 +1,6 @@
 import React from "react";
 import { estimateMonthly, formatMoney, parsePrice } from "./pricing";
+import { hasNote, noteForCar } from "./notes";
 
 // Pulls the leading number out of a display string like "18,420 mi",
 // "670 HP" or "$22,000". Values that carry no number at all — "Low
@@ -83,8 +84,13 @@ function winningIndexes(cars, row) {
   );
 }
 
-export default function CompareTable({ cars, financeTerms, onClose, onRemove }) {
+export default function CompareTable({ cars, financeTerms, notes = {}, onClose, onRemove }) {
   const compareRows = buildRows(financeTerms);
+  // The notes are the reasons behind the shortlist, and the comparison is
+  // where the shortlist gets decided — so they belong here, lined up under
+  // the specs they were written about. Left out entirely when none of these
+  // vehicles has one, rather than adding a row of dashes.
+  const showNotes = cars.some((car) => hasNote(notes, car.id));
 
   return (
     <section className="compare-panel" aria-label="Vehicle comparison">
@@ -149,6 +155,18 @@ export default function CompareTable({ cars, financeTerms, onClose, onRemove }) 
                 </tr>
               );
             })}
+
+            {showNotes && (
+              <tr>
+                <th scope="row">Your notes</th>
+
+                {cars.map((car) => (
+                  <td key={car.id} className="compare-note">
+                    {noteForCar(notes, car.id).trim() || "—"}
+                  </td>
+                ))}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

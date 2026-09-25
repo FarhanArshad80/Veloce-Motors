@@ -1453,6 +1453,7 @@ export default function DisplayCarList() {
           <CompareTable
             cars={comparedCars}
             financeTerms={financeTerms}
+            notes={notes}
             onClose={() => setComparing(false)}
             onRemove={handleToggleShortlist}
           />
