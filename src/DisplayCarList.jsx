@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import CarCard from "./CarCard";
 import CarDetails from "./CarDetails";
 import CompareTable from "./CompareTable";
@@ -401,6 +401,7 @@ export default function DisplayCarList() {
   // was starred, so putting it back restores the listing rather than
   // appending a stranger to the end of the inventory.
   const [deleted, setDeleted] = useState(null);
+  const searchInput = useRef(null);
 
   useEffect(() => {
     localStorage.setItem("veloce-cars", JSON.stringify(cars));
@@ -1149,12 +1150,32 @@ export default function DisplayCarList() {
               <span>⌕</span>
 
               <input
+                ref={searchInput}
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search vehicles..."
                 aria-label="Search vehicles"
               />
+
+              {/* Emptying the box meant selecting the text or holding
+                  backspace, on a phone most of all. Only there when there is
+                  something to clear, and it hands focus back to the box —
+                  the button disappears as it is pressed, and clearing a
+                  search is nearly always the first half of typing another. */}
+              {query && (
+                <button
+                  type="button"
+                  className="search-clear"
+                  onClick={() => {
+                    setQuery("");
+                    searchInput.current?.focus();
+                  }}
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
 
             <button

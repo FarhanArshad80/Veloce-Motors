@@ -596,6 +596,23 @@ button {
   color: var(--muted);
 }
 
+.search-clear {
+  flex-shrink: 0;
+  border: none;
+  padding: 4px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  transition: color 0.25s ease;
+}
+
+.search-clear:hover,
+.search-clear:focus-visible {
+  color: var(--gold);
+}
+
 .filter-list {
   display: flex;
   gap: 8px;
