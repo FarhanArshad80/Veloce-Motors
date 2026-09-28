@@ -462,6 +462,15 @@ export default function DisplayCarList() {
     });
   }, [selectedCar]);
 
+  // The address already names the open car; the tab should too. Several
+  // vehicles opened into several tabs all read "Veloce Motors", and so did
+  // every bookmark and history entry made from them.
+  useEffect(() => {
+    const base = "Veloce Motors";
+
+    document.title = selectedCar ? `${selectedCar.name} · ${base}` : base;
+  }, [selectedCar]);
+
   // Writes the current filters back to the address bar. replaceState rather
   // than pushState: typing six letters into the search box is one act of
   // narrowing down, not six entries to press Back through. Defaults are
