@@ -277,6 +277,21 @@ function queryWords(query) {
   return query.trim().toLowerCase().split(/\s+/).filter(Boolean);
 }
 
+// A page-wide shortcut must never steal a key from somebody typing: a "/" in
+// a note or a booking form is a character, not a command.
+function isTypingTarget(target) {
+  if (!target) return false;
+
+  const tag = target.tagName;
+
+  return (
+    target.isContentEditable ||
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT"
+  );
+}
+
 // A narrowed inventory is a thing people send to each other — "here, the
 // SUVs under $50k" — and a thing they expect the back button to return them
 // to. Keeping the filters in the query string makes both work, and costs a
@@ -492,6 +507,24 @@ export default function DisplayCarList() {
 
     return () => clearTimeout(timer);
   }, [copiedLink]);
+
+  // "/" jumps to the search box, the way it does on most sites with one. The
+  // box sits in a toolbar that is usually scrolled out of view by the time
+  // anybody wants to search again.
+  useEffect(() => {
+    function handleKey(event) {
+      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (isTypingTarget(event.target)) return;
+
+      event.preventDefault();
+      searchInput.current?.focus();
+      searchInput.current?.select();
+    }
+
+    window.addEventListener("keydown", handleKey);
+
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
 
   useEffect(() => {
     if (!deleted) return undefined;
@@ -1215,8 +1248,9 @@ export default function DisplayCarList() {
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search vehicles..."
+                placeholder="Search vehicles... ( / )"
                 aria-label="Search vehicles"
+                aria-keyshortcuts="/"
               />
 
               {/* Emptying the box meant selecting the text or holding
