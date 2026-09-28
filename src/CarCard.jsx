@@ -160,12 +160,19 @@ export default function CarCard({
         animationDelay: `${index * 100}ms`,
       }}
       onClick={() => onSelect(car)}
+      // Enter or Space, like any other control that can be pressed. Only
+      // when the card itself has focus: a key pressed on the star or on
+      // Remove belongs to that button, and used to open the car as well.
       onKeyDown={(event) => {
-        if (event.key === "Enter") {
+        if (event.target !== event.currentTarget) return;
+
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
           onSelect(car);
         }
       }}
       tabIndex={0}
+      aria-label={`${car.name}, ${car.price || "price on request"}. Show details`}
     >
       <div className="car-image-wrapper">
         <img
