@@ -2767,6 +2767,17 @@ button {
   line-height: 1.5;
 }
 
+.details-note-count {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+}
+
+.details-note-count.is-full {
+  color: var(--gold);
+}
+
 /* ---- Saved searches -------------------------------------------------- */
 
 /* On the "Filtering by" row, after Clear all, because it is an action on

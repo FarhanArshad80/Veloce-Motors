@@ -200,6 +200,22 @@ export default function CarDetails({
             Kept on this device, against this vehicle. Nobody at the showroom
             sees it.
           </p>
+
+          {/* The box stops accepting text at the limit without a word, which
+              reads as the keyboard having broken. Only shown once the end is
+              close enough to matter, so a two-line note stays uncluttered. */}
+          {note.length >= NOTE_LIMIT - 50 && (
+            <p
+              className={
+                note.length >= NOTE_LIMIT
+                  ? "details-note-count is-full"
+                  : "details-note-count"
+              }
+              aria-live="polite"
+            >
+              {NOTE_LIMIT - note.length} characters left
+            </p>
+          )}
         </section>
 
         {/* The button says what pressing it will do. With a drive already in
