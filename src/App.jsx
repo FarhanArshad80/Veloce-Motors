@@ -252,7 +252,12 @@ export default function App() {
             </div>
           </div>
 
-          <p>© 2025 Veloce Motors. Drive something unforgettable.</p>
+          {/* Read from the calendar rather than typed in, so the footer does
+              not go stale every January. */}
+          <p>
+            © {new Date().getFullYear()} Veloce Motors. Drive something
+            unforgettable.
+          </p>
 
           <div className="footer-socials">
             <span>Instagram</span>
