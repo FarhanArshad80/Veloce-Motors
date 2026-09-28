@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import DisplayCarList from "./DisplayCarList";
 import MaintenanceCard from "./MaintenanceCard";
 import TestDriveForm from "./TestDriveForm";
@@ -34,6 +34,26 @@ const navItems = [
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [booking, setBooking] = useState(false);
+  const menuToggle = useRef(null);
+
+  // The open menu covers the top of the page on a phone, and the only way
+  // out of it was the same small button that opened it. Escape closes it and
+  // hands focus back to that button, so a keyboard user is left where they
+  // started rather than somewhere inside a menu that has vanished.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+
+    function handleKey(event) {
+      if (event.key !== "Escape") return;
+
+      setMenuOpen(false);
+      menuToggle.current?.focus();
+    }
+
+    window.addEventListener("keydown", handleKey);
+
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
 
   return (
     <main className="app">
@@ -62,6 +82,7 @@ export default function App() {
           </button>
 
           <button
+            ref={menuToggle}
             className={`nav-toggle ${menuOpen ? "is-open" : ""}`}
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
