@@ -179,6 +179,11 @@ export default function CarCard({
           src={imageSource}
           alt={`${car.name} vehicle`}
           className="car-image"
+          // The grid sits below a full-screen hero, so none of these photos
+          // is on screen when the page opens. Fetching them up front made
+          // them compete with the hero image that is.
+          loading="lazy"
+          decoding="async"
           onError={handleImageError}
         />
 
