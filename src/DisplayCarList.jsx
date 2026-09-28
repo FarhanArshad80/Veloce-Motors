@@ -1248,6 +1248,19 @@ export default function DisplayCarList() {
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                // Escape empties the box first, and only a second press on
+                // an empty box lets go of it — the same order the cross
+                // button beside it and most search fields follow.
+                onKeyDown={(event) => {
+                  if (event.key !== "Escape") return;
+
+                  if (query) {
+                    event.preventDefault();
+                    setQuery("");
+                  } else {
+                    event.currentTarget.blur();
+                  }
+                }}
                 placeholder="Search vehicles... ( / )"
                 aria-label="Search vehicles"
                 aria-keyshortcuts="/"
