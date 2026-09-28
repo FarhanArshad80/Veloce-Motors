@@ -1259,6 +1259,34 @@ export default function DisplayCarList() {
     setDeleted(null);
   }
 
+  // Kept current each render so the key handler below always undoes the
+  // removal the banner is actually showing.
+  const undoDeleteRef = useRef(undoDelete);
+
+  useEffect(() => {
+    undoDeleteRef.current = undoDelete;
+  });
+
+  // Ctrl+Z (⌘Z on a Mac) while the banner is up, which is where a hand goes
+  // after removing the wrong thing. Left to the browser inside a field,
+  // where it undoes typing instead.
+  useEffect(() => {
+    if (!deleted) return undefined;
+
+    function handleKey(event) {
+      if (event.key.toLowerCase() !== "z" || event.shiftKey) return;
+      if (!(event.ctrlKey || event.metaKey)) return;
+      if (isTypingTarget(event.target)) return;
+
+      event.preventDefault();
+      undoDeleteRef.current();
+    }
+
+    window.addEventListener("keydown", handleKey);
+
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [deleted]);
+
   return (
     <div className="inventory-layout">
       <div className="inventory-main">
@@ -1675,7 +1703,13 @@ export default function DisplayCarList() {
             Removed <strong>{deleted.car.name}</strong>
           </span>
 
-          <button onClick={undoDelete}>Undo</button>
+          <button
+            onClick={undoDelete}
+            aria-keyshortcuts="Control+Z Meta+Z"
+            title="Undo (Ctrl+Z)"
+          >
+            Undo
+          </button>
 
           <button
             className="undo-bar-close"
