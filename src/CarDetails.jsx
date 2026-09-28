@@ -66,6 +66,8 @@ export default function CarDetails({
               onClick={() => onStep(-1)}
               disabled={position === 0}
               aria-label="Previous vehicle in the results"
+              aria-keyshortcuts="ArrowLeft"
+              title="Previous (←)"
             >
               ←
             </button>
@@ -79,6 +81,8 @@ export default function CarDetails({
               onClick={() => onStep(1)}
               disabled={position === resultCount - 1}
               aria-label="Next vehicle in the results"
+              aria-keyshortcuts="ArrowRight"
+              title="Next (→)"
             >
               →
             </button>

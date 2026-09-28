@@ -920,6 +920,33 @@ export default function DisplayCarList() {
     return index === -1 ? null : index;
   }, [filteredCars, selectedCar]);
 
+  // The panel's ← and → buttons, from the keyboard. Reading through a filtered
+  // grid is a run of "next, next, next", and each one meant finding a small
+  // button at the top of a sidebar that may have scrolled away. Left alone
+  // while typing (the arrows move the caret in a note) and while a dialog is
+  // open over the page, where the arrows belong to the dialog.
+  useEffect(() => {
+    if (selectedPosition === null) return undefined;
+
+    function handleKey(event) {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      if (isTypingTarget(event.target)) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+
+      const next = filteredCars[selectedPosition + (event.key === "ArrowRight" ? 1 : -1)];
+
+      if (!next) return;
+
+      event.preventDefault();
+      setSelectedCar(next);
+    }
+
+    window.addEventListener("keydown", handleKey);
+
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [filteredCars, selectedPosition]);
+
   // Every narrowing currently in force, each carrying the means to undo just
   // itself. The controls are spread across a search box, three selects and a
   // chip row, so "why am I only seeing two cars" was a question you answered
