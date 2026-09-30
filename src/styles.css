@@ -2627,6 +2627,13 @@ button {
   letter-spacing: 0.4px;
 }
 
+/* Quieter than the date it qualifies: it answers "how long have I got"
+   without competing with the appointment itself. */
+.bookings-countdown {
+  color: var(--gold);
+  font-size: 12px;
+}
+
 .bookings-car,
 .bookings-car-plain {
   display: block;

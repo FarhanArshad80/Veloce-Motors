@@ -82,6 +82,27 @@ export function bookingWhen(booking) {
   return `${weekday} ${day} ${MONTH_LABEL[month - 1]}, ${time}`;
 }
 
+// "Today", "Tomorrow" or "In 5 days". The diary lists dates, and a date is
+// something to work out against a calendar; how far away the appointment is
+// is the thing the person checking it actually wants to know.
+//
+// Counted between calendar days built from their parts, for the same reason
+// bookingWhen does: parsing "2026-09-17" lands on UTC midnight. Rounded so a
+// clock change inside the gap cannot turn a 23-hour day into zero days.
+export function bookingCountdown(booking, today = todayKey()) {
+  const toDate = (key) => {
+    const [year, month, day] = key.split("-").map(Number);
+    return new Date(year, month - 1, day);
+  };
+  const days = Math.round((toDate(booking.day) - toDate(today)) / 86400000);
+
+  if (days < 0) return null;
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+
+  return `In ${days} days`;
+}
+
 export function bookingForCar(bookings, carId) {
   return bookings.find((entry) => entry.carId === carId) || null;
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { bookingWhen, downloadBookingCalendar } from "./bookings";
+import { bookingCountdown, bookingWhen, downloadBookingCalendar } from "./bookings";
 
 // Every test drive that has been booked, in one place.
 //
@@ -37,50 +37,60 @@ export default function BookingsPanel({ bookings, onClose, onCancel, onSelect })
         </p>
       ) : (
         <ul className="bookings-list">
-          {bookings.map((booking) => (
-            <li className="bookings-row" key={booking.id}>
-              <div className="bookings-when">
-                <p className="bookings-time">{bookingWhen(booking)}</p>
+          {bookings.map((booking) => {
+            const countdown = bookingCountdown(booking);
 
-                {/* A booking made from the header belongs to no vehicle, and
-                    that is a real state rather than missing data — somebody
-                    arranging a visit before choosing what to look at. It says
-                    so rather than leaving the line blank. */}
-                {booking.carName ? (
-                  booking.carId != null && onSelect ? (
-                    <button
-                      className="bookings-car"
-                      onClick={() => onSelect(booking.carId)}
-                    >
-                      {booking.carName}
-                    </button>
+            return (
+              <li className="bookings-row" key={booking.id}>
+                <div className="bookings-when">
+                  <p className="bookings-time">
+                    {bookingWhen(booking)}
+
+                    {countdown && (
+                      <span className="bookings-countdown"> · {countdown}</span>
+                    )}
+                  </p>
+
+                  {/* A booking made from the header belongs to no vehicle, and
+                      that is a real state rather than missing data — somebody
+                      arranging a visit before choosing what to look at. It says
+                      so rather than leaving the line blank. */}
+                  {booking.carName ? (
+                    booking.carId != null && onSelect ? (
+                      <button
+                        className="bookings-car"
+                        onClick={() => onSelect(booking.carId)}
+                      >
+                        {booking.carName}
+                      </button>
+                    ) : (
+                      <p className="bookings-car-plain">{booking.carName}</p>
+                    )
                   ) : (
-                    <p className="bookings-car-plain">{booking.carName}</p>
-                  )
-                ) : (
-                  <p className="bookings-car-plain">General showroom visit</p>
-                )}
-              </div>
+                    <p className="bookings-car-plain">General showroom visit</p>
+                  )}
+                </div>
 
-              <div className="bookings-actions">
-                <button
-                  className="bookings-ics"
-                  onClick={() => downloadBookingCalendar(booking)}
-                  title="Save this appointment to your calendar"
-                >
-                  Add to calendar
-                </button>
+                <div className="bookings-actions">
+                  <button
+                    className="bookings-ics"
+                    onClick={() => downloadBookingCalendar(booking)}
+                    title="Save this appointment to your calendar"
+                  >
+                    Add to calendar
+                  </button>
 
-                <button
-                  className="bookings-cancel"
-                  onClick={() => onCancel(booking.id)}
-                  aria-label={`Cancel the test drive on ${bookingWhen(booking)}`}
-                >
-                  Cancel
-                </button>
-              </div>
-            </li>
-          ))}
+                  <button
+                    className="bookings-cancel"
+                    onClick={() => onCancel(booking.id)}
+                    aria-label={`Cancel the test drive on ${bookingWhen(booking)}`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
