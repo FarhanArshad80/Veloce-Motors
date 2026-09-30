@@ -1603,6 +1603,12 @@ button {
   font-size: 12px;
 }
 
+/* The whole-term figure spans both columns: it is the sum the two above it
+   lead to, not a third fact alongside them. */
+.finance-summary-total {
+  grid-column: 1 / -1;
+}
+
 /* Louder than the disclaimer under it and quieter than the figure above:
    this is a consequence of the choice just made, not small print and not the
    headline. The two amounts are picked out because they are the sentence —

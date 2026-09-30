@@ -28,6 +28,9 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
       financed,
       monthly,
       interest: monthly * months - financed,
+      // Everything handed over by the end of the term, deposit included:
+      // the figure to set against paying the sticker price outright.
+      total: deposit + monthly * months,
     };
   }, [price, depositPercent, apr, months]);
 
@@ -136,6 +139,11 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
         <div>
           <span>Cost of credit</span>
           <strong>{formatMoney(estimate.interest)}</strong>
+        </div>
+
+        <div className="finance-summary-total">
+          <span>Total payable</span>
+          <strong>{formatMoney(estimate.total)}</strong>
         </div>
       </div>
 
