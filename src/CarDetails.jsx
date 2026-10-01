@@ -4,7 +4,7 @@ import TestDriveForm from "./TestDriveForm";
 import { bookingWhen } from "./bookings";
 import { similarCars } from "./similar";
 import { NOTE_LIMIT } from "./notes";
-import { estimateMonthly, formatMoney, parsePrice } from "./pricing";
+import { estimateMonthly, formatMoney, milesPerYear, parsePrice } from "./pricing";
 
 export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
@@ -20,6 +20,7 @@ export default function CarDetails({
     () => similarCars(car, inventory),
     [car, inventory]
   );
+  const yearlyMiles = milesPerYear(car.mileage, car.year);
 
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
@@ -168,6 +169,12 @@ export default function CarDetails({
           <div>
             <span>Mileage</span>
             <strong>{car.mileage || "Low mileage"}</strong>
+
+            {yearlyMiles !== null && (
+              <small className="details-spec-note">
+                ≈ {Math.round(yearlyMiles).toLocaleString("en-US")} mi a year
+              </small>
+            )}
           </div>
 
           <div>

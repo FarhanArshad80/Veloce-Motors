@@ -138,3 +138,17 @@ export function estimateMonthly(price, terms = DEFAULT_FINANCE_TERMS) {
 
   return monthlyPayment(price - (price * depositPercent) / 100, apr, months);
 }
+
+// The odometer alone says little: 40,000 miles is a lot on a two-year-old
+// car and very little on a ten-year-old one. Spread over the car's age it
+// becomes the figure a buyer actually weighs against the usual 10–12k a
+// year. A car registered this year counts as one year old, so a nearly-new
+// car is not divided by zero. Null when either half is missing.
+export function milesPerYear(mileage, year, currentYear = new Date().getFullYear()) {
+  const miles = parseMileage(mileage);
+  const built = Number.parseInt(year, 10);
+
+  if (miles <= 0 || !Number.isFinite(built) || built > currentYear) return null;
+
+  return miles / Math.max(currentYear - built, 1);
+}
