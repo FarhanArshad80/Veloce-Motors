@@ -1585,6 +1585,24 @@ button {
   color: var(--primary-black);
 }
 
+.finance-reset {
+  display: block;
+  margin: -6px 0 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 10px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.finance-reset:hover,
+.finance-reset:focus-visible {
+  color: var(--gold);
+}
+
 .finance-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import {
+  DEFAULT_FINANCE_TERMS,
   FINANCE_TERM_OPTIONS,
   formatMoney,
   monthlyPayment,
@@ -42,6 +43,15 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
     () => termTradeoff(price, { depositPercent, months, apr }),
     [price, depositPercent, apr, months]
   );
+
+  // The terms are remembered across visits and shared by every card, so a
+  // few experiments with the sliders stick to the whole grid. This is the
+  // way back to the figures the page started on, offered only once they
+  // have actually been moved.
+  const isDefault =
+    depositPercent === DEFAULT_FINANCE_TERMS.depositPercent &&
+    months === DEFAULT_FINANCE_TERMS.months &&
+    apr === DEFAULT_FINANCE_TERMS.apr;
 
   // Without a price there is nothing to amortise, and a "$0/mo" figure would
   // read as an offer rather than as missing data.
@@ -109,6 +119,18 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
           </button>
         ))}
       </div>
+
+      {!isDefault && (
+        <button
+          type="button"
+          className="finance-reset"
+          onClick={() => onChangeTerms({ ...DEFAULT_FINANCE_TERMS })}
+        >
+          Reset to {DEFAULT_FINANCE_TERMS.depositPercent}% deposit ·{" "}
+          {DEFAULT_FINANCE_TERMS.months} months ·{" "}
+          {DEFAULT_FINANCE_TERMS.apr.toFixed(1)}% APR
+        </button>
+      )}
 
       {/* Directly under the buttons that cause it. The cost of credit is in
           the summary below and moves at the same moment, which is exactly
