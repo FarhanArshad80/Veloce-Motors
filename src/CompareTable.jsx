@@ -1,5 +1,5 @@
 import React from "react";
-import { estimateMonthly, formatMoney, parsePrice } from "./pricing";
+import { estimateMonthly, formatMoney, milesPerYear, parsePrice } from "./pricing";
 import { hasNote, noteForCar } from "./notes";
 
 // Pulls the leading number out of a display string like "18,420 mi",
@@ -37,6 +37,15 @@ function creditText(car, terms) {
   return formatMoney(monthly * terms.months - financed);
 }
 
+// The odometer spread over the car's age, which is the fairer way to set
+// a two-year-old against a six-year-old: raw mileage alone always favours
+// the newer car. Blank when either the mileage or the year is unreadable.
+function yearlyMilesText(car) {
+  const yearly = milesPerYear(car.mileage, car.year);
+
+  return yearly === null ? "" : `${Math.round(yearly).toLocaleString("en-US")} mi`;
+}
+
 // The specs worth lining up. `best` says which end of the row wins; rows
 // without it — colour, body style, engine — have no better or worse, so
 // they stay unmarked.
@@ -53,6 +62,7 @@ function buildRows(terms) {
     { label: "Type", read: (car) => car.type },
     { label: "Colour", read: (car) => car.color },
     { label: "Mileage", read: (car) => car.mileage, best: "low" },
+    { label: "Miles a year", read: yearlyMilesText, best: "low" },
     { label: "Engine", read: (car) => car.engine },
     { label: "Power", read: (car) => car.power, best: "high" },
   ];
