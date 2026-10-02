@@ -19,6 +19,16 @@ export function parseMileage(mileage) {
   return Number.isNaN(value) ? 0 : value;
 }
 
+// Power is another display string ("450 HP"). A listing that only says
+// "Performance spec" carries no figure and reads as 0, which the sort treats
+// as unknown rather than as the weakest car in stock.
+export function parsePower(power) {
+  const digits = String(power).replace(/[^0-9.]/g, "");
+  const value = Number.parseFloat(digits);
+
+  return Number.isNaN(value) ? 0 : value;
+}
+
 export function formatMoney(amount) {
   return `$${Math.round(amount).toLocaleString("en-US")}`;
 }

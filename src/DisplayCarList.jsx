@@ -17,6 +17,7 @@ import {
 import {
   estimateMonthly,
   parseMileage,
+  parsePower,
   parsePrice,
   recallFinanceTerms,
   saveFinanceTerms,
@@ -129,6 +130,10 @@ const sortOptions = [
   // usually built on. A vehicle with no readable odometer figure sorts last
   // rather than first, where a zero would read as delivery mileage.
   { value: "mileage-asc", label: "Mileage: Lowest first" },
+  // Power is what the spec line under every card leads with, and the one
+  // figure on it nothing else could order by. A car with no stated output
+  // sinks to the end rather than being ranked as the weakest.
+  { value: "power-desc", label: "Power: Highest first" },
   { value: "year-desc", label: "Year: Newest first" },
   { value: "name-asc", label: "Name: A–Z" },
 ];
@@ -901,6 +906,17 @@ export default function DisplayCarList() {
           if (right <= 0) return -1;
 
           return left - right;
+        });
+        break;
+      case "power-desc":
+        sorted.sort((a, b) => {
+          const left = parsePower(a.power);
+          const right = parsePower(b.power);
+
+          if (left <= 0) return right <= 0 ? 0 : 1;
+          if (right <= 0) return -1;
+
+          return right - left;
         });
         break;
       case "year-desc":
