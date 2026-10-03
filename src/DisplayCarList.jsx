@@ -16,6 +16,7 @@ import {
 } from "./notes";
 import {
   estimateMonthly,
+  milesPerYear,
   parseMileage,
   parsePower,
   parsePrice,
@@ -130,6 +131,10 @@ const sortOptions = [
   // usually built on. A vehicle with no readable odometer figure sorts last
   // rather than first, where a zero would read as delivery mileage.
   { value: "mileage-asc", label: "Mileage: Lowest first" },
+  // Raw mileage always favours the newest car. Spread over the car's age it
+  // ranks how hard each one has been used, which is the fairer order when
+  // the stock spans several years. Unreadable figures sink to the end.
+  { value: "yearly-miles-asc", label: "Miles a year: Lowest first" },
   // Power is what the spec line under every card leads with, and the one
   // figure on it nothing else could order by. A car with no stated output
   // sinks to the end rather than being ranked as the weakest.
@@ -904,6 +909,17 @@ export default function DisplayCarList() {
 
           if (left <= 0) return right <= 0 ? 0 : 1;
           if (right <= 0) return -1;
+
+          return left - right;
+        });
+        break;
+      case "yearly-miles-asc":
+        sorted.sort((a, b) => {
+          const left = milesPerYear(a.mileage, a.year);
+          const right = milesPerYear(b.mileage, b.year);
+
+          if (left === null) return right === null ? 0 : 1;
+          if (right === null) return -1;
 
           return left - right;
         });
