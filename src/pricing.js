@@ -162,3 +162,16 @@ export function milesPerYear(mileage, year, currentYear = new Date().getFullYear
 
   return miles / Math.max(currentYear - built, 1);
 }
+
+// What each unit of power costs. Two cars at different prices with different
+// outputs are hard to weigh by eye; dividing one by the other gives a single
+// figure where lower is better value. Null when either half is missing, so a
+// car with no stated output is left out rather than scored as free power.
+export function pricePerHorsepower(price, power) {
+  const amount = parsePrice(price);
+  const horsepower = parsePower(power);
+
+  if (amount <= 0 || horsepower <= 0) return null;
+
+  return amount / horsepower;
+}

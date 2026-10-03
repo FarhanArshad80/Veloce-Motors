@@ -1,5 +1,11 @@
 import React from "react";
-import { estimateMonthly, formatMoney, milesPerYear, parsePrice } from "./pricing";
+import {
+  estimateMonthly,
+  formatMoney,
+  milesPerYear,
+  parsePrice,
+  pricePerHorsepower,
+} from "./pricing";
 import { hasNote, noteForCar } from "./notes";
 
 // Pulls the leading number out of a display string like "18,420 mi",
@@ -46,6 +52,15 @@ function yearlyMilesText(car) {
   return yearly === null ? "" : `${Math.round(yearly).toLocaleString("en-US")} mi`;
 }
 
+// The sticker price spread over the stated output, so a dearer car that
+// makes far more power can be seen to be the better buy per horsepower.
+// Blank when the price or the power figure is unreadable.
+function pricePerHpText(car) {
+  const perHp = pricePerHorsepower(car.price, car.power);
+
+  return perHp === null ? "" : `${formatMoney(perHp)}/HP`;
+}
+
 // The specs worth lining up. `best` says which end of the row wins; rows
 // without it — colour, body style, engine — have no better or worse, so
 // they stay unmarked.
@@ -65,6 +80,7 @@ function buildRows(terms) {
     { label: "Miles a year", read: yearlyMilesText, best: "low" },
     { label: "Engine", read: (car) => car.engine },
     { label: "Power", read: (car) => car.power, best: "high" },
+    { label: "Price per HP", read: pricePerHpText, best: "low" },
   ];
 }
 
