@@ -20,6 +20,7 @@ import {
   parseMileage,
   parsePower,
   parsePrice,
+  pricePerHorsepower,
   recallFinanceTerms,
   saveFinanceTerms,
 } from "./pricing";
@@ -139,6 +140,10 @@ const sortOptions = [
   // figure on it nothing else could order by. A car with no stated output
   // sinks to the end rather than being ranked as the weakest.
   { value: "power-desc", label: "Power: Highest first" },
+  // The comparison table already scores the shortlist this way; this lets
+  // the whole inventory be read in the same order, cheapest power first.
+  // A car missing either its price or its output cannot be scored and sinks.
+  { value: "value-asc", label: "Price per hp: Best value first" },
   { value: "year-desc", label: "Year: Newest first" },
   { value: "name-asc", label: "Name: A–Z" },
 ];
@@ -933,6 +938,17 @@ export default function DisplayCarList() {
           if (right <= 0) return -1;
 
           return right - left;
+        });
+        break;
+      case "value-asc":
+        sorted.sort((a, b) => {
+          const left = pricePerHorsepower(a.price, a.power);
+          const right = pricePerHorsepower(b.price, b.power);
+
+          if (left === null) return right === null ? 0 : 1;
+          if (right === null) return -1;
+
+          return left - right;
         });
         break;
       case "year-desc":
