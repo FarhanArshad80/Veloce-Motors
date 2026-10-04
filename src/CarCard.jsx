@@ -164,6 +164,14 @@ export default function CarCard({
       // when the card itself has focus: a key pressed on the star or on
       // Remove belongs to that button, and used to open the car as well.
       onKeyDown={(event) => {
+        // Escape backs out of a half-made removal from anywhere in the card,
+        // the Confirm button included, the way it closes any other question.
+        if (event.key === "Escape" && confirmingRemove) {
+          event.stopPropagation();
+          setConfirmingRemove(false);
+          return;
+        }
+
         if (event.target !== event.currentTarget) return;
 
         if (event.key === "Enter" || event.key === " ") {
