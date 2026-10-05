@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   estimateMonthly,
   formatMoney,
@@ -118,6 +118,24 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
   // vehicles has one, rather than adding a row of dashes.
   const showNotes = cars.some((car) => hasNote(notes, car.id));
 
+  // Escape puts the comparison away, as it does the menu and the booking
+  // form. Left alone while something is being typed into, where Escape
+  // already means "clear this box".
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key !== "Escape") return;
+
+      const target = event.target;
+      if (target instanceof HTMLElement && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;
+
+      onClose();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
   return (
     <section className="compare-panel" aria-label="Vehicle comparison">
       <div className="compare-header">
@@ -126,7 +144,7 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
           <h3>Comparing {cars.length} vehicles</h3>
         </div>
 
-        <button className="compare-close" onClick={onClose}>
+        <button className="compare-close" onClick={onClose} title="Close (Esc)">
           Close ✕
         </button>
       </div>
