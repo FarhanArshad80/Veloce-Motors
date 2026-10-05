@@ -127,6 +127,13 @@ function winningIndexes(cars, row) {
 
 export default function CompareTable({ cars, financeTerms, notes = {}, onClose, onRemove }) {
   const compareRows = buildRows(financeTerms);
+  const rowWinners = compareRows.map((row) => winningIndexes(cars, row));
+  // How many rows each vehicle comes out best on, a tally of the highlights
+  // that otherwise has to be counted down a column by eye.
+  const winCounts = cars.map((_, index) =>
+    rowWinners.filter((winners) => winners.has(index)).length
+  );
+  const markedRows = rowWinners.filter((winners) => winners.size > 0).length;
   // The notes are the reasons behind the shortlist, and the comparison is
   // where the shortlist gets decided — so they belong here, lined up under
   // the specs they were written about. Left out entirely when none of these
@@ -175,9 +182,15 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
             <tr>
               <th scope="col">Specification</th>
 
-              {cars.map((car) => (
+              {cars.map((car, index) => (
                 <th scope="col" key={car.id}>
                   <span className="compare-car-name">{car.name}</span>
+
+                  {markedRows > 0 && (
+                    <span className="compare-wins">
+                      Best on {winCounts[index]} of {markedRows}
+                    </span>
+                  )}
 
                   <button
                     className="compare-remove"
@@ -192,8 +205,8 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
           </thead>
 
           <tbody>
-            {compareRows.map((row) => {
-              const winners = winningIndexes(cars, row);
+            {compareRows.map((row, rowIndex) => {
+              const winners = rowWinners[rowIndex];
 
               return (
                 <tr key={row.label}>
