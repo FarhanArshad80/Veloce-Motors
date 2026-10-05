@@ -43,6 +43,20 @@ function creditText(car, terms) {
   return formatMoney(monthly * terms.months - financed);
 }
 
+// Everything handed over by the end of the term: the deposit plus every
+// payment. The cost of credit alone hides how much of each car's price is
+// paid up front; this is the one figure that puts the whole deal on a line.
+function totalPayableText(car, terms) {
+  const price = parsePrice(car.price);
+  const monthly = estimateMonthly(price, terms);
+
+  if (monthly <= 0) return "";
+
+  const deposit = (price * terms.depositPercent) / 100;
+
+  return formatMoney(deposit + monthly * terms.months);
+}
+
 // The odometer spread over the car's age, which is the fairer way to set
 // a two-year-old against a six-year-old: raw mileage alone always favours
 // the newer car. Blank when either the mileage or the year is unreadable.
@@ -73,6 +87,7 @@ function buildRows(terms) {
     { label: "Price", read: (car) => car.price, best: "low" },
     { label: "Monthly", read: (car) => monthlyText(car, terms), best: "low" },
     { label: "Cost of credit", read: (car) => creditText(car, terms), best: "low" },
+    { label: "Total payable", read: (car) => totalPayableText(car, terms), best: "low" },
     { label: "Year", read: (car) => car.year, best: "high" },
     { label: "Type", read: (car) => car.type },
     { label: "Colour", read: (car) => car.color },
@@ -220,7 +235,7 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
           quoted without the terms behind it is not a number anyone should be
           asked to compare on. */}
       <p className="compare-terms">
-        Monthly and cost of credit estimated on {financeTerms.depositPercent}%
+        Monthly, cost of credit and total payable estimated on {financeTerms.depositPercent}%
         deposit over {financeTerms.months} months at{" "}
         {financeTerms.apr.toFixed(1)}% APR.
       </p>
