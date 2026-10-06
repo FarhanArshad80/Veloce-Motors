@@ -4,7 +4,9 @@ import TestDriveForm from "./TestDriveForm";
 import { bookingWhen } from "./bookings";
 import { similarCars } from "./similar";
 import { NOTE_LIMIT } from "./notes";
-import { estimateMonthly, formatMoney, milesPerYear, parsePrice } from "./pricing";
+import {
+  estimateMonthly, formatMoney, milesPerYear, parsePrice, pricePerHorsepower,
+} from "./pricing";
 
 export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
@@ -21,6 +23,7 @@ export default function CarDetails({
     [car, inventory]
   );
   const yearlyMiles = milesPerYear(car.mileage, car.year);
+  const perHorsepower = pricePerHorsepower(car.price, car.power);
 
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
@@ -185,6 +188,14 @@ export default function CarDetails({
           <div>
             <span>Power</span>
             <strong>{car.power || "Performance spec"}</strong>
+
+            {/* The grid can already be ordered by this; the panel is where a
+                single car is weighed, and it said nothing about it. */}
+            {perHorsepower !== null && (
+              <small className="details-spec-note">
+                {formatMoney(perHorsepower)} per hp
+              </small>
+            )}
           </div>
         </div>
 
