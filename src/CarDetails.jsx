@@ -8,6 +8,21 @@ import {
   estimateMonthly, formatMoney, milesPerYear, parsePrice, pricePerHorsepower,
 } from "./pricing";
 
+// "2019" asks the reader to do a subtraction before it means anything; the
+// age is what gets weighed against the mileage and the price. Null for a car
+// with no usable year, or one dated ahead of the calendar.
+function carAge(year, currentYear = new Date().getFullYear()) {
+  const built = Number.parseInt(year, 10);
+
+  if (!Number.isFinite(built) || built > currentYear) return null;
+
+  const years = currentYear - built;
+
+  if (years === 0) return "This year's model";
+
+  return `${years} ${years === 1 ? "year" : "years"} old`;
+}
+
 export default function CarDetails({
   car, booking, onBookingsChange, financeTerms, onChangeFinanceTerms,
   inventory = [], onSelect, note = "", onNoteChange,
@@ -24,6 +39,7 @@ export default function CarDetails({
   );
   const yearlyMiles = milesPerYear(car.mileage, car.year);
   const perHorsepower = pricePerHorsepower(car.price, car.power);
+  const age = carAge(car.year);
 
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
@@ -167,6 +183,10 @@ export default function CarDetails({
           <div>
             <span>Year</span>
             <strong>{car.year || "2024"}</strong>
+
+            {age !== null && (
+              <small className="details-spec-note">{age}</small>
+            )}
           </div>
 
           <div>
