@@ -63,6 +63,12 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
         <div>
           <span>Estimated monthly</span>
           <strong>{formatMoney(estimate.monthly)}</strong>
+
+          {/* Plenty of buyers are paid weekly, and a monthly figure has to
+              be divided before it can be set against a payslip. */}
+          <small className="finance-weekly">
+            ≈ {formatMoney((estimate.monthly * 12) / 52)} a week
+          </small>
         </div>
 
         <p className="finance-terms">

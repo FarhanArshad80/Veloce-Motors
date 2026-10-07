@@ -1522,6 +1522,13 @@ button {
   font-size: 25px;
 }
 
+.finance-weekly {
+  display: block;
+  margin-top: 2px;
+  color: var(--silver);
+  font-size: 11px;
+}
+
 .finance-terms {
   margin: 0;
   color: var(--silver);
