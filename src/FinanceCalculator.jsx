@@ -120,6 +120,11 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
             className={option === months ? "finance-term active" : "finance-term"}
             onClick={() => update({ months: option })}
             aria-pressed={option === months}
+            // What pressing it would do, before it is pressed: comparing
+            // terms meant clicking through all five and remembering each.
+            title={`${option} months · ${formatMoney(
+              monthlyPayment(estimate.financed, apr, option)
+            )}/mo`}
           >
             {option}
           </button>
