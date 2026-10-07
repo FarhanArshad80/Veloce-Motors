@@ -1639,6 +1639,11 @@ button {
   grid-column: 1 / -1;
 }
 
+.finance-over-price {
+  color: var(--silver);
+  font-size: 11px;
+}
+
 /* Louder than the disclaimer under it and quieter than the figure above:
    this is a consequence of the choice just made, not small print and not the
    headline. The two amounts are picked out because they are the sentence —

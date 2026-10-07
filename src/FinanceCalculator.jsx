@@ -172,6 +172,15 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
         <div className="finance-summary-total">
           <span>Total payable</span>
           <strong>{formatMoney(estimate.total)}</strong>
+
+          {/* The sticker price is the figure in everyone's head, so the
+              total is measured against it rather than left beside it. */}
+          {estimate.total - price >= 1 && (
+            <small className="finance-over-price">
+              {formatMoney(estimate.total - price)} more than paying{" "}
+              {formatMoney(price)} outright
+            </small>
+          )}
         </div>
       </div>
 
