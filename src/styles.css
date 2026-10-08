@@ -1491,6 +1491,11 @@ button {
   font-size: 9px;
 }
 
+/* A saving is the half of the comparison worth noticing first. */
+.similar-price small.similar-cheaper {
+  color: var(--gold-light);
+}
+
 /* Monthly-payment estimate */
 
 .finance-panel {

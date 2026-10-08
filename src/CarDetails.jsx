@@ -40,6 +40,7 @@ export default function CarDetails({
   const yearlyMiles = milesPerYear(car.mileage, car.year);
   const perHorsepower = pricePerHorsepower(car.price, car.power);
   const age = carAge(car.year);
+  const price = parsePrice(car.price);
 
   function handleImageError(event) {
     event.currentTarget.style.display = "none";
@@ -277,6 +278,11 @@ export default function CarDetails({
             <ul>
               {alternatives.map((option) => {
                 const monthly = estimateMonthly(parsePrice(option.price), financeTerms);
+                const optionPrice = parsePrice(option.price);
+                const gap =
+                  optionPrice > 0 && price > 0 && optionPrice !== price
+                    ? optionPrice - price
+                    : null;
 
                 return (
                   <li key={option.id}>
@@ -306,6 +312,16 @@ export default function CarDetails({
                             price has no payment, and "$0/mo" reads as an
                             offer. */}
                         {monthly > 0 && <small>{formatMoney(monthly)}/mo</small>}
+
+                        {/* Set against the car already open, since that is
+                            the comparison being made by anyone reading
+                            this list. Left out when either price is
+                            missing or the two are the same. */}
+                        {gap !== null && (
+                          <small className={gap < 0 ? "similar-cheaper" : undefined}>
+                            {formatMoney(Math.abs(gap))} {gap < 0 ? "less" : "more"}
+                          </small>
+                        )}
                       </span>
                     </button>
                   </li>
