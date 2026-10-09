@@ -5,7 +5,8 @@ import { bookingWhen } from "./bookings";
 import { similarCars } from "./similar";
 import { NOTE_LIMIT } from "./notes";
 import {
-  estimateMonthly, formatMoney, milesPerYear, parsePrice, pricePerHorsepower,
+  estimateMonthly, formatMoney, milesPerYear, parseMileage, parsePrice,
+  pricePerHorsepower,
 } from "./pricing";
 
 // "2019" asks the reader to do a subtraction before it means anything; the
@@ -283,6 +284,14 @@ export default function CarDetails({
                   optionPrice > 0 && price > 0 && optionPrice !== price
                     ? optionPrice - price
                     : null;
+                // Mileage set against the open car the same way, since it
+                // is the other half of what a car is worth.
+                const ownMiles = parseMileage(car.mileage);
+                const optionMiles = parseMileage(option.mileage);
+                const milesGap =
+                  ownMiles > 0 && optionMiles > 0 && ownMiles !== optionMiles
+                    ? optionMiles - ownMiles
+                    : null;
 
                 return (
                   <li key={option.id}>
@@ -301,6 +310,8 @@ export default function CarDetails({
                         <small>
                           {option.year || "—"} · {option.type || "Other"}
                           {option.mileage ? ` · ${option.mileage}` : ""}
+                          {milesGap !== null &&
+                            ` (${Math.abs(milesGap).toLocaleString()} ${milesGap < 0 ? "fewer" : "more"})`}
                         </small>
                       </span>
 
