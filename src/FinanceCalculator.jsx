@@ -172,6 +172,15 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
         <div>
           <span>Cost of credit</span>
           <strong>{formatMoney(estimate.interest)}</strong>
+
+          {/* A dollar figure alone says little about whether the loan is a
+              good one; as a share of what is borrowed it compares. */}
+          {estimate.financed > 0 && estimate.interest >= 1 && (
+            <small className="finance-over-price">
+              {Math.round((estimate.interest / estimate.financed) * 100)}% of
+              the amount financed
+            </small>
+          )}
         </div>
 
         <div className="finance-summary-total">
