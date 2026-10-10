@@ -39,6 +39,9 @@ export default function BookingsPanel({ bookings, onClose, onCancel, onSelect })
         <ul className="bookings-list">
           {bookings.map((booking) => {
             const countdown = bookingCountdown(booking);
+            // Two viewings on one day is a day to plan travel around, and
+            // in a list of dates it is easy to read straight past.
+            const sameDay = bookings.filter((entry) => entry.day === booking.day).length;
 
             return (
               <li className="bookings-row" key={booking.id}>
@@ -48,6 +51,10 @@ export default function BookingsPanel({ bookings, onClose, onCancel, onSelect })
 
                     {countdown && (
                       <span className="bookings-countdown"> · {countdown}</span>
+                    )}
+
+                    {sameDay > 1 && (
+                      <span className="bookings-countdown"> · {sameDay} that day</span>
                     )}
                   </p>
 
