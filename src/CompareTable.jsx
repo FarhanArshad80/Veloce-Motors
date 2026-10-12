@@ -164,6 +164,19 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
         <div>
           <p className="eyebrow">Side by side</p>
           <h3>Comparing {cars.length} vehicles</h3>
+
+          {/* The tally under each name, totted up into a verdict. Only when
+              one car is clearly ahead; a tie is not a leader. */}
+          {(() => {
+            const top = Math.max(0, ...winCounts);
+            const leaders = winCounts.filter((count) => count === top).length;
+
+            return markedRows > 0 && top > 0 && leaders === 1 ? (
+              <p className="compare-terms">
+                {cars[winCounts.indexOf(top)].name} leads on {top} of {markedRows}
+              </p>
+            ) : null;
+          })()}
         </div>
 
         <button className="compare-close" onClick={onClose} title="Close (Esc)">
