@@ -73,6 +73,18 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
 
         <p className="finance-terms">
           {months} months · {apr.toFixed(1)}% APR
+          {/* "60 months" is a length; the month it ends is what gets set
+              against a lease ending or a child starting school. Counted from
+              today, the earliest the first payment could fall. */}
+          <small className="finance-weekly">
+            paid off by{" "}
+            {(() => {
+              const end = new Date();
+              end.setDate(1);
+              end.setMonth(end.getMonth() + months);
+              return end.toLocaleDateString(undefined, { month: "short", year: "numeric" });
+            })()}
+          </small>
         </p>
       </div>
 
