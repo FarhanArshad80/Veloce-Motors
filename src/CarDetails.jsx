@@ -9,6 +9,10 @@ import {
   pricePerHorsepower,
 } from "./pricing";
 
+// What a car is usually driven in a year, for setting one car's figure
+// against.
+const TYPICAL_YEARLY_MILES = 12000;
+
 // "2019" asks the reader to do a subtraction before it means anything; the
 // age is what gets weighed against the mileage and the price. Null for a car
 // with no usable year, or one dated ahead of the calendar.
@@ -198,6 +202,14 @@ export default function CarDetails({
             {yearlyMiles !== null && (
               <small className="details-spec-note">
                 ≈ {Math.round(yearlyMiles).toLocaleString("en-US")} mi a year
+                {/* A yearly figure means little without the usual one to set
+                    it against; about 12,000 miles is the common benchmark.
+                    Within a fifth either side is simply average. */}
+                {yearlyMiles > TYPICAL_YEARLY_MILES * 1.2
+                  ? " · above average"
+                  : yearlyMiles < TYPICAL_YEARLY_MILES * 0.8
+                  ? " · below average"
+                  : " · about average"}
               </small>
             )}
           </div>
