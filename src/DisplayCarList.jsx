@@ -16,6 +16,7 @@ import {
 } from "./notes";
 import {
   estimateMonthly,
+  formatMoney,
   milesPerYear,
   parseMileage,
   parsePower,
@@ -1340,7 +1341,21 @@ export default function DisplayCarList() {
       <div className="inventory-main">
         <div className="inventory-toolbar">
           <div>
-            <p className="inventory-count">
+            {/* The count says how many; hovering says what they cost, which
+                is the next thing anybody narrowing a search wants to know.
+                Cars with no price are left out rather than read as free. */}
+            <p
+              className="inventory-count"
+              title={(() => {
+                const prices = filteredCars.map((item) => parsePrice(item.price)).filter((value) => value > 0);
+                if (prices.length === 0) return undefined;
+                const low = Math.min(...prices);
+                const high = Math.max(...prices);
+                return low === high
+                  ? `All at ${formatMoney(low)}`
+                  : `From ${formatMoney(low)} to ${formatMoney(high)}`;
+              })()}
+            >
               {isNarrowed
                 ? `Showing ${filteredCars.length} of ${cars.length} vehicles`
                 : `${cars.length} vehicles available`}
