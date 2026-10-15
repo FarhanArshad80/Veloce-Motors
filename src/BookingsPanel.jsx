@@ -22,6 +22,14 @@ export default function BookingsPanel({ bookings, onClose, onCancel, onSelect })
           <h3>
             {bookings.length} test drive{bookings.length === 1 ? "" : "s"} booked
           </h3>
+
+          {/* The list is in date order, so the first entry is the one to get
+              ready for; said up here so it does not have to be found. */}
+          {bookings.length > 1 && bookingCountdown(bookings[0]) && (
+            <p className="bookings-countdown">
+              Next: {bookingCountdown(bookings[0]).toLowerCase()}
+            </p>
+          )}
         </div>
 
         <button className="compare-close" onClick={onClose}>
