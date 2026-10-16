@@ -207,7 +207,17 @@ export default function CarCard({
           {car.type || carType}
         </div>
 
-        <div className="car-year">
+        {/* A model year is a subtraction away from what it means; hovering
+            does the subtraction. */}
+        <div
+          className="car-year"
+          title={(() => {
+            const built = Number.parseInt(car.year, 10);
+            const age = new Date().getFullYear() - built;
+            if (!Number.isFinite(built) || age < 0) return undefined;
+            return age === 0 ? "This year's model" : `${age} year${age === 1 ? "" : "s"} old`;
+          })()}
+        >
           {car.year || "2024"}
         </div>
 
