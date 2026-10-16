@@ -938,6 +938,13 @@ button {
   color: var(--gold);
 }
 
+/* The mileage sits in a span only to carry its tooltip; it keeps the
+   line's own colour rather than the bullet's gold. */
+.car-card-top p .car-card-mileage {
+  margin: 0;
+  color: inherit;
+}
+
 .car-card-top strong {
   color: var(--gold);
   font-size: 14px;

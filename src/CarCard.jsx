@@ -3,6 +3,7 @@ import {
   DEFAULT_FINANCE_TERMS,
   estimateMonthly,
   formatMoney,
+  milesPerYear,
   parsePrice,
 } from "./pricing";
 import { bookingWhen } from "./bookings";
@@ -249,7 +250,19 @@ export default function CarCard({
             <p>
               {car.color || "Premium finish"}{" "}
               <span>•</span>{" "}
-              {car.mileage || "Low mileage"}
+              {/* The odometer spread over the car's age, as in the details
+                  panel, so two cards can be compared without opening them. */}
+              <span
+                className="car-card-mileage"
+                title={(() => {
+                  const yearly = milesPerYear(car.mileage, car.year);
+                  return yearly === null
+                    ? undefined
+                    : `≈ ${Math.round(yearly).toLocaleString("en-US")} mi a year`;
+                })()}
+              >
+                {car.mileage || "Low mileage"}
+              </span>
             </p>
           </div>
 
