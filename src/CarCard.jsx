@@ -6,6 +6,7 @@ import {
   milesPerYear,
   parsePower,
   parsePrice,
+  pricePerHorsepower,
 } from "./pricing";
 import { bookingWhen } from "./bookings";
 
@@ -268,7 +269,16 @@ export default function CarCard({
           </div>
 
           <div className="car-card-price">
-            <strong>{car.price || "Price on request"}</strong>
+            {/* The same value figure the comparison table and the "best
+                value" sort use, so a card can be weighed without either. */}
+            <strong
+              title={(() => {
+                const perHp = pricePerHorsepower(car.price, car.power);
+                return perHp === null ? undefined : `${formatMoney(perHp)} per horsepower`;
+              })()}
+            >
+              {car.price || "Price on request"}
+            </strong>
 
             {monthly > 0 && (
               <small
