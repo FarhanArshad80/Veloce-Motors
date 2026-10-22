@@ -4,6 +4,7 @@ import {
   estimateMonthly,
   formatMoney,
   milesPerYear,
+  parsePower,
   parsePrice,
 } from "./pricing";
 import { bookingWhen } from "./bookings";
@@ -306,7 +307,15 @@ export default function CarCard({
             {car.engine || "Premium tuned"}
           </span>
 
-          <span>
+          {/* Most of the world quotes power in kilowatts; the listing
+              only ever says horsepower. */}
+          <span
+            title={
+              parsePower(car.power) > 0
+                ? `${Math.round(parsePower(car.power) * 0.7457)} kW`
+                : undefined
+            }
+          >
             <small>Power</small>
             {car.power || "Performance spec"}
           </span>
