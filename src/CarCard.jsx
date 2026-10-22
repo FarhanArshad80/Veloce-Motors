@@ -302,7 +302,16 @@ export default function CarCard({
         <div className="car-card-divider"></div>
 
         <div className="car-card-specs">
-          <span>
+          {/* "2.0L" is how it is badged; registration papers and insurers
+              ask for cubic centimetres. */}
+          <span
+            title={(() => {
+              const litres = Number.parseFloat(/(\d+(?:\.\d+)?)\s*L\b/i.exec(car.engine || "")?.[1]);
+              return Number.isFinite(litres) && litres > 0
+                ? `${Math.round(litres * 1000).toLocaleString("en-US")} cc`
+                : undefined;
+            })()}
+          >
             <small>Engine</small>
             {car.engine || "Premium tuned"}
           </span>
