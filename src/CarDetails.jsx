@@ -164,7 +164,21 @@ export default function CarDetails({
         <div className="details-price-row">
           <div>
             <span>Starting price</span>
-            <strong>{car.price || "Price on request"}</strong>
+            {/* Whether this is a cheap car or a dear one depends on what
+                else is on the forecourt. */}
+            <strong
+              title={(() => {
+                const listed = inventory.map((other) => parsePrice(other.price)).filter((value) => value > 0);
+                if (price <= 0 || listed.length < 2) return undefined;
+                const average = listed.reduce((sum, value) => sum + value, 0) / listed.length;
+                const gap = price - average;
+                return Math.abs(gap) < 1
+                  ? `The average of the ${listed.length} listed`
+                  : `${formatMoney(Math.abs(gap))} ${gap < 0 ? "below" : "above"} the average of the ${listed.length} listed`;
+              })()}
+            >
+              {car.price || "Price on request"}
+            </strong>
           </div>
 
           <div className="details-rating">
