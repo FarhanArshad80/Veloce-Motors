@@ -225,7 +225,17 @@ export default function CarDetails({
 
           <div>
             <span>Engine</span>
-            <strong>{car.engine || "Premium tuned"}</strong>
+            {/* As on the card: badged in litres, registered in cc. */}
+            <strong
+              title={(() => {
+                const litres = Number.parseFloat(/(\d+(?:\.\d+)?)\s*L\b/i.exec(car.engine || "")?.[1]);
+                return Number.isFinite(litres) && litres > 0
+                  ? `${Math.round(litres * 1000).toLocaleString("en-US")} cc`
+                  : undefined;
+              })()}
+            >
+              {car.engine || "Premium tuned"}
+            </strong>
           </div>
 
           <div>
