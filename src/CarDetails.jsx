@@ -5,8 +5,8 @@ import { bookingWhen } from "./bookings";
 import { similarCars } from "./similar";
 import { NOTE_LIMIT } from "./notes";
 import {
-  estimateMonthly, formatMoney, milesPerYear, parseMileage, parsePrice,
-  pricePerHorsepower,
+  estimateMonthly, formatMoney, milesPerYear, parseMileage, parsePower,
+  parsePrice, pricePerHorsepower,
 } from "./pricing";
 
 // What a car is usually driven in a year, for setting one car's figure
@@ -240,7 +240,15 @@ export default function CarDetails({
 
           <div>
             <span>Power</span>
-            <strong>{car.power || "Performance spec"}</strong>
+            <strong
+              title={
+                parsePower(car.power) > 0
+                  ? `${Math.round(parsePower(car.power) * 0.7457)} kW`
+                  : undefined
+              }
+            >
+              {car.power || "Performance spec"}
+            </strong>
 
             {/* The grid can already be ordered by this; the panel is where a
                 single car is weighed, and it said nothing about it. */}
