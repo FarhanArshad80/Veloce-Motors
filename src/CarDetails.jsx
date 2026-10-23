@@ -197,7 +197,16 @@ export default function CarDetails({
 
           <div>
             <span>Mileage</span>
-            <strong>{car.mileage || "Low mileage"}</strong>
+            {/* Buyers outside the US read odometers in kilometres. */}
+            <strong
+              title={
+                parseMileage(car.mileage) > 0
+                  ? `${Math.round(parseMileage(car.mileage) * 1.609).toLocaleString("en-US")} km`
+                  : undefined
+              }
+            >
+              {car.mileage || "Low mileage"}
+            </strong>
 
             {yearlyMiles !== null && (
               <small className="details-spec-note">
