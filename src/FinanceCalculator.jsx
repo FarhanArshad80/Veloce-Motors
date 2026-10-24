@@ -178,7 +178,11 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
       <div className="finance-summary">
         <div>
           <span>Amount financed</span>
-          <strong>{formatMoney(estimate.financed)}</strong>
+          <strong
+            title={`${formatMoney(price)} less a ${formatMoney(price - estimate.financed)} deposit`}
+          >
+            {formatMoney(estimate.financed)}
+          </strong>
         </div>
 
         <div>
