@@ -187,7 +187,16 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
 
         <div>
           <span>Cost of credit</span>
-          <strong>{formatMoney(estimate.interest)}</strong>
+          {/* Spread over the term, the way the payments actually carry it. */}
+          <strong
+            title={
+              estimate.interest >= 1
+                ? `About ${formatMoney(estimate.interest / months)} a month over ${months} months`
+                : undefined
+            }
+          >
+            {formatMoney(estimate.interest)}
+          </strong>
 
           {/* A dollar figure alone says little about whether the loan is a
               good one; as a share of what is borrowed it compares. */}
