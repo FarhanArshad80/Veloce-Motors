@@ -86,6 +86,7 @@ export default function BookingsPanel({ bookings, onClose, onCancel, onSelect })
                       <button
                         className="bookings-car"
                         onClick={() => onSelect(booking.carId)}
+                        title={`Close the diary and open the ${booking.carName}`}
                       >
                         {booking.carName}
                       </button>
