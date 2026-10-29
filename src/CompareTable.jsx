@@ -200,7 +200,17 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
                   <span className="compare-car-name">{car.name}</span>
 
                   {markedRows > 0 && (
-                    <span className="compare-wins">
+                    <span
+                      className="compare-wins"
+                      title={
+                        winCounts[index] > 0
+                          ? compareRows
+                              .filter((_, rowIndex) => rowWinners[rowIndex].has(index))
+                              .map((row) => row.label)
+                              .join(", ")
+                          : undefined
+                      }
+                    >
                       Best on {winCounts[index]} of {markedRows}
                     </span>
                   )}
