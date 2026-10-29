@@ -219,6 +219,7 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
                     className="compare-remove"
                     onClick={() => onRemove(car.id)}
                     aria-label={`Remove ${car.name} from the comparison`}
+                    title="Also takes it off your shortlist"
                   >
                     Remove
                   </button>
