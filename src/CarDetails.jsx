@@ -153,6 +153,7 @@ export default function CarDetails({
                     ? `Remove ${car.name} from your shortlist`
                     : `Save ${car.name} to your shortlist`
                 }
+                title={shortlisted ? "Saved · click to remove" : "Save for later"}
               >
                 <span aria-hidden="true">{shortlisted ? "★" : "☆"}</span>
                 {shortlisted ? "Saved" : "Save"}
