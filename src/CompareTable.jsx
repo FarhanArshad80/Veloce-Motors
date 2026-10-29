@@ -229,6 +229,7 @@ export default function CompareTable({ cars, financeTerms, notes = {}, onClose, 
                     <td
                       key={car.id}
                       className={winners.has(index) ? "compare-best" : ""}
+                      title={winners.has(index) ? `Best ${row.label.toLowerCase()} of these` : undefined}
                     >
                       {row.read(car) || "—"}
 
