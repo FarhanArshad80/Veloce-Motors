@@ -110,6 +110,7 @@ export default function BookingsPanel({ bookings, onClose, onCancel, onSelect })
                   <button
                     className="bookings-cancel"
                     onClick={() => onCancel(booking.id)}
+                    title="Cancels straight away · this cannot be undone"
                     aria-label={`Cancel the test drive on ${bookingWhen(booking)}`}
                   >
                     Cancel
