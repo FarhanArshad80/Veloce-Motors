@@ -179,7 +179,7 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
         ref={dialogRef}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <button className="booking-close" onClick={onClose} aria-label="Close">
+        <button className="booking-close" onClick={onClose} aria-label="Close" title="Close (Esc)">
           ×
         </button>
 
