@@ -215,6 +215,7 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
               type="button"
               className="booking-calendar"
               onClick={() => downloadBookingCalendar(booked)}
+              title="Save this appointment to your calendar"
             >
               Add to calendar
             </button>
@@ -250,6 +251,7 @@ export default function TestDriveForm({ car, onClose, onBookingsChange }) {
               type="button"
               className="booking-calendar"
               onClick={() => downloadBookingCalendar(existing)}
+              title="Save this appointment to your calendar"
             >
               Add to calendar
             </button>
