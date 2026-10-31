@@ -1421,6 +1421,7 @@ export default function DisplayCarList() {
               }
               onClick={() => setShortlistOnly((only) => !only)}
               aria-pressed={shortlistOnly}
+              title={shortlistOnly ? "Show every vehicle again" : "Show only the vehicles you saved"}
             >
               ★ Saved
               <span className="filter-count">{shortlist.length}</span>
