@@ -1594,6 +1594,7 @@ export default function DisplayCarList() {
                 className="active-filter"
                 onClick={filter.clear}
                 aria-label={`Remove filter: ${filter.label}`}
+                title="Remove this filter"
               >
                 {filter.label}
                 <span aria-hidden="true">×</span>
