@@ -1649,6 +1649,7 @@ export default function DisplayCarList() {
                     className="saved-search-remove"
                     onClick={() => handleForgetSearch(search.key)}
                     aria-label={`Forget the saved search ${search.label}`}
+                    title={`Forget ${search.label}`}
                   >
                     ×
                   </button>
