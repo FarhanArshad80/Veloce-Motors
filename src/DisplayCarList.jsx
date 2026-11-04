@@ -1642,6 +1642,7 @@ export default function DisplayCarList() {
                     className="saved-search-apply"
                     onClick={() => applySearch(search)}
                     aria-pressed={on}
+                    title={on ? "Showing this search" : "Apply this saved search"}
                   >
                     {search.label}
                   </button>
