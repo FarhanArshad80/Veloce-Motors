@@ -1781,6 +1781,7 @@ export default function DisplayCarList() {
             className="undo-bar-close"
             onClick={() => setDeleted(null)}
             aria-label="Dismiss"
+            title="Dismiss · the deletion stays"
           >
             ×
           </button>
