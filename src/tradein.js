@@ -62,3 +62,44 @@ export function estimateTradeIn(
     high: mid * (1 + SPREAD),
   };
 }
+
+// The details of the buyer's own car, kept between visits the same way the
+// finance terms are. Typing the old car in again on every visit, or on every
+// vehicle opened, would be the fastest way to make nobody use this.
+export const TRADE_IN_KEY = "veloce-trade-in";
+
+export const EMPTY_TRADE_IN = {
+  originalPrice: "",
+  year: "",
+  mileage: "",
+  condition: "good",
+  applied: false,
+};
+
+export function recallTradeIn() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TRADE_IN_KEY));
+
+    if (!saved || typeof saved !== "object") return EMPTY_TRADE_IN;
+
+    return {
+      originalPrice: typeof saved.originalPrice === "string" ? saved.originalPrice : "",
+      year: typeof saved.year === "string" ? saved.year : "",
+      mileage: typeof saved.mileage === "string" ? saved.mileage : "",
+      condition: CONDITIONS.some((option) => option.id === saved.condition)
+        ? saved.condition
+        : "good",
+      applied: saved.applied === true,
+    };
+  } catch {
+    return EMPTY_TRADE_IN;
+  }
+}
+
+export function saveTradeIn(tradeIn) {
+  try {
+    localStorage.setItem(TRADE_IN_KEY, JSON.stringify(tradeIn));
+  } catch {
+    /* storage unavailable — the estimate still works for this visit */
+  }
+}
