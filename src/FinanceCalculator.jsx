@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   DEFAULT_FINANCE_TERMS,
   FINANCE_TERM_OPTIONS,
@@ -7,6 +7,8 @@ import {
   parsePrice,
   termTradeoff,
 } from "./pricing";
+import TradeInEstimator from "./TradeInEstimator";
+import { EMPTY_TRADE_IN } from "./tradein";
 
 // The assumptions are held by the inventory above rather than here, so moving
 // a slider re-prices the whole grid and not just the vehicle on screen.
@@ -14,6 +16,10 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
   const { depositPercent, months, apr } = terms;
 
   const price = parsePrice(car.price);
+
+  // The buyer's own car. Held here rather than with the terms: it does not
+  // re-price the grid, only the vehicle being looked at closely.
+  const [tradeIn, setTradeIn] = useState(EMPTY_TRADE_IN);
 
   function update(patch) {
     onChangeTerms({ ...terms, ...patch });
@@ -174,6 +180,8 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
           )}
         </p>
       )}
+
+      <TradeInEstimator value={tradeIn} onChange={setTradeIn} />
 
       <div className="finance-summary">
         <div>
