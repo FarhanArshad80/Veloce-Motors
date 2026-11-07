@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_FINANCE_TERMS,
   FINANCE_TERM_OPTIONS,
@@ -8,7 +8,7 @@ import {
   termTradeoff,
 } from "./pricing";
 import TradeInEstimator from "./TradeInEstimator";
-import { EMPTY_TRADE_IN } from "./tradein";
+import { recallTradeIn, saveTradeIn } from "./tradein";
 
 // The assumptions are held by the inventory above rather than here, so moving
 // a slider re-prices the whole grid and not just the vehicle on screen.
@@ -19,7 +19,13 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
 
   // The buyer's own car. Held here rather than with the terms: it does not
   // re-price the grid, only the vehicle being looked at closely.
-  const [tradeIn, setTradeIn] = useState(EMPTY_TRADE_IN);
+  // Remembered across visits and across vehicles: it is the same old car
+  // whichever new one is open.
+  const [tradeIn, setTradeIn] = useState(recallTradeIn);
+
+  useEffect(() => {
+    saveTradeIn(tradeIn);
+  }, [tradeIn]);
 
   function update(patch) {
     onChangeTerms({ ...terms, ...patch });
