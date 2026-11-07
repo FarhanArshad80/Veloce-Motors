@@ -1751,6 +1751,10 @@ button {
   accent-color: var(--gold);
 }
 
+.tradein-clear {
+  margin: 12px 0 0;
+}
+
 .tradein-problem {
   margin: 12px 0 0;
   color: #f08a7e;

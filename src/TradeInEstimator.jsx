@@ -1,6 +1,6 @@
 import React from "react";
 import { formatMoney } from "./pricing";
-import { CONDITIONS, estimateTradeIn, tradeInProblem } from "./tradein";
+import { CONDITIONS, EMPTY_TRADE_IN, estimateTradeIn, tradeInProblem } from "./tradein";
 
 // The buyer's current car, folded away until it is wanted: plenty of buyers
 // have nothing to trade, and four empty fields would crowd the panel for them.
@@ -92,6 +92,18 @@ export default function TradeInEstimator({ value, onChange }) {
           />
           Take {formatMoney(estimate.low)} off the price of this car
         </label>
+      )}
+
+      {/* Saved between visits, so there has to be a way to forget it - the
+          old car gets sold privately, or this was a friend's. */}
+      {(value.year || value.mileage || value.originalPrice) && (
+        <button
+          type="button"
+          className="finance-reset tradein-clear"
+          onClick={() => onChange({ ...EMPTY_TRADE_IN })}
+        >
+          Clear trade-in
+        </button>
       )}
     </details>
   );
