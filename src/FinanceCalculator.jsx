@@ -33,10 +33,17 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
 
   // What the old car is put toward this one: nothing until the buyer ticks
   // the box, and nothing while the form holds something it cannot value.
-  const tradeValue =
+  const tradeWorth =
     tradeIn.applied && !tradeInProblem(tradeIn)
       ? estimateTradeIn(tradeIn)?.low ?? 0
       : 0;
+
+  // An old car worth more than what is left after the deposit pays the rest
+  // off, and no more: the amount financed cannot go below zero. What is left
+  // over is said separately rather than quietly dropped.
+  const balance = Math.max(price - (price * depositPercent) / 100, 0);
+  const tradeValue = Math.min(tradeWorth, balance);
+  const tradeSurplus = tradeWorth - tradeValue;
 
   const estimate = useMemo(() => {
     const deposit = (price * depositPercent) / 100;
@@ -197,6 +204,14 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
       )}
 
       <TradeInEstimator value={tradeIn} onChange={setTradeIn} />
+
+      {tradeSurplus >= 1 && (
+        <p className="finance-tradeoff">
+          Your trade-in covers the rest of this car, with about{" "}
+          <strong>{formatMoney(tradeSurplus)}</strong> to spare — you could
+          lower the deposit.
+        </p>
+      )}
 
       <div className="finance-summary">
         <div>
