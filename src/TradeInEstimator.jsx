@@ -1,9 +1,12 @@
 import React from "react";
-import { CONDITIONS } from "./tradein";
+import { formatMoney } from "./pricing";
+import { CONDITIONS, estimateTradeIn } from "./tradein";
 
 // The buyer's current car, folded away until it is wanted: plenty of buyers
 // have nothing to trade, and four empty fields would crowd the panel for them.
 export default function TradeInEstimator({ value, onChange }) {
+  const estimate = estimateTradeIn(value);
+
   function update(patch) {
     onChange({ ...value, ...patch });
   }
@@ -60,6 +63,16 @@ export default function TradeInEstimator({ value, onChange }) {
           </select>
         </label>
       </div>
+
+      {/* A range, never a single figure: one number reads as an offer. */}
+      {estimate && (
+        <p className="tradein-estimate">
+          Worth roughly{" "}
+          <strong>
+            {formatMoney(estimate.low)} – {formatMoney(estimate.high)}
+          </strong>
+        </p>
+      )}
     </details>
   );
 }
