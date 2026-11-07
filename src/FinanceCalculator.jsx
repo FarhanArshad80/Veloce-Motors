@@ -8,7 +8,7 @@ import {
   termTradeoff,
 } from "./pricing";
 import TradeInEstimator from "./TradeInEstimator";
-import { recallTradeIn, saveTradeIn } from "./tradein";
+import { estimateTradeIn, recallTradeIn, saveTradeIn, tradeInProblem } from "./tradein";
 
 // The assumptions are held by the inventory above rather than here, so moving
 // a slider re-prices the whole grid and not just the vehicle on screen.
@@ -31,9 +31,16 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
     onChangeTerms({ ...terms, ...patch });
   }
 
+  // What the old car is put toward this one: nothing until the buyer ticks
+  // the box, and nothing while the form holds something it cannot value.
+  const tradeValue =
+    tradeIn.applied && !tradeInProblem(tradeIn)
+      ? estimateTradeIn(tradeIn)?.low ?? 0
+      : 0;
+
   const estimate = useMemo(() => {
     const deposit = (price * depositPercent) / 100;
-    const financed = price - deposit;
+    const financed = price - deposit - tradeValue;
     const monthly = monthlyPayment(financed, apr, months);
 
     return {
@@ -45,7 +52,7 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
       // the figure to set against paying the sticker price outright.
       total: deposit + monthly * months,
     };
-  }, [price, depositPercent, apr, months]);
+  }, [price, depositPercent, apr, months, tradeValue]);
 
   // What the chosen term costs against the shortest one on offer. Null on
   // that shortest term, where there is nothing to compare.

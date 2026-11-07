@@ -1737,6 +1737,20 @@ button {
   font-size: 12px;
 }
 
+.tradein-apply {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.tradein-apply input {
+  accent-color: var(--gold);
+}
+
 .tradein-problem {
   margin: 12px 0 0;
   color: #f08a7e;

@@ -80,6 +80,19 @@ export default function TradeInEstimator({ value, onChange }) {
           </strong>
         </p>
       )}
+
+      {/* The low end, so the monthly figure it produces is one the buyer can
+          still count on after the dealer has looked the car over. */}
+      {estimate && (
+        <label className="tradein-apply">
+          <input
+            type="checkbox"
+            checked={value.applied}
+            onChange={(event) => update({ applied: event.target.checked })}
+          />
+          Take {formatMoney(estimate.low)} off the price of this car
+        </label>
+      )}
     </details>
   );
 }
