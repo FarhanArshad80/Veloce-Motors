@@ -119,10 +119,13 @@ export function saveFinanceTerms(terms) {
 //
 // Null on the shortest term itself, where there is no trade to describe, and
 // on anything without a usable price.
-export function termTradeoff(price, terms, baseline = FINANCE_TERM_OPTIONS[0]) {
+//
+// `tradeValue` is whatever the buyer's old car is putting toward this one,
+// which comes off the amount borrowed the same way the deposit does.
+export function termTradeoff(price, terms, baseline = FINANCE_TERM_OPTIONS[0], tradeValue = 0) {
   if (price <= 0 || terms.months <= baseline) return null;
 
-  const financed = price - (price * terms.depositPercent) / 100;
+  const financed = price - (price * terms.depositPercent) / 100 - tradeValue;
   const chosen = monthlyPayment(financed, terms.apr, terms.months);
   const shortest = monthlyPayment(financed, terms.apr, baseline);
 

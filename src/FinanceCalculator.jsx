@@ -48,9 +48,11 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
       financed,
       monthly,
       interest: monthly * months - financed,
-      // Everything handed over by the end of the term, deposit included:
-      // the figure to set against paying the sticker price outright.
-      total: deposit + monthly * months,
+      // Everything handed over by the end of the term, deposit and old car
+      // included: the figure to set against paying the sticker price
+      // outright. Leaving the trade-in out would make the loan look cheaper
+      // than paying cash by exactly the value of the car given away.
+      total: deposit + tradeValue + monthly * months,
     };
   }, [price, depositPercent, apr, months, tradeValue]);
 
@@ -59,8 +61,8 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
   // Rebuilt from the loose parts rather than handed `terms`, so this reads
   // the same three values the estimate above it does and moves when they do.
   const tradeoff = useMemo(
-    () => termTradeoff(price, { depositPercent, months, apr }),
-    [price, depositPercent, apr, months]
+    () => termTradeoff(price, { depositPercent, months, apr }, undefined, tradeValue),
+    [price, depositPercent, apr, months, tradeValue]
   );
 
   // The terms are remembered across visits and shared by every card, so a
@@ -200,7 +202,9 @@ export default function FinanceCalculator({ car, terms, onChangeTerms }) {
         <div>
           <span>Amount financed</span>
           <strong
-            title={`${formatMoney(price)} less a ${formatMoney(price - estimate.financed)} deposit`}
+            title={`${formatMoney(price)} less a ${formatMoney(estimate.deposit)} deposit${
+              tradeValue > 0 ? ` and ${formatMoney(tradeValue)} for your trade-in` : ""
+            }`}
           >
             {formatMoney(estimate.financed)}
           </strong>
