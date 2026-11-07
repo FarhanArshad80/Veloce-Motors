@@ -1675,6 +1675,72 @@ button {
   font-weight: 600;
 }
 
+.tradein {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-light);
+}
+
+.tradein summary {
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tradein[open] summary {
+  margin-bottom: 12px;
+}
+
+.tradein-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.tradein-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tradein-fields span {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tradein-fields input,
+.tradein-fields select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.tradein-fields input:focus-visible,
+.tradein-fields select:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+}
+
+.tradein-estimate {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tradein-estimate strong {
+  color: var(--text);
+}
+
 .finance-disclaimer {
   margin: 14px 0 0;
   color: var(--muted);
