@@ -1737,6 +1737,12 @@ button {
   font-size: 12px;
 }
 
+.tradein-problem {
+  margin: 12px 0 0;
+  color: #f08a7e;
+  font-size: 12px;
+}
+
 .tradein-estimate strong {
   color: var(--text);
 }

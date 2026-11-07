@@ -1,11 +1,12 @@
 import React from "react";
 import { formatMoney } from "./pricing";
-import { CONDITIONS, estimateTradeIn } from "./tradein";
+import { CONDITIONS, estimateTradeIn, tradeInProblem } from "./tradein";
 
 // The buyer's current car, folded away until it is wanted: plenty of buyers
 // have nothing to trade, and four empty fields would crowd the panel for them.
 export default function TradeInEstimator({ value, onChange }) {
-  const estimate = estimateTradeIn(value);
+  const problem = tradeInProblem(value);
+  const estimate = problem ? null : estimateTradeIn(value);
 
   function update(patch) {
     onChange({ ...value, ...patch });
@@ -63,6 +64,12 @@ export default function TradeInEstimator({ value, onChange }) {
           </select>
         </label>
       </div>
+
+      {problem && (
+        <p className="tradein-problem" role="alert">
+          {problem}
+        </p>
+      )}
 
       {/* A range, never a single figure: one number reads as an offer. */}
       {estimate && (

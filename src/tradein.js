@@ -103,3 +103,24 @@ export function saveTradeIn(tradeIn) {
     /* storage unavailable — the estimate still works for this visit */
   }
 }
+
+// Why no estimate is showing, when the reason is something the buyer typed
+// rather than something they have not typed yet. Null while the form is
+// simply incomplete: complaining about an empty field nobody has reached is
+// nagging, not help.
+export function tradeInProblem(
+  { originalPrice, year, mileage },
+  currentYear = new Date().getFullYear()
+) {
+  if (year !== "") {
+    const built = Number.parseInt(year, 10);
+
+    if (!Number.isFinite(built) || built < 1950) return "Enter the year the car was first registered.";
+    if (built > currentYear) return `The year can't be later than ${currentYear}.`;
+  }
+
+  if (mileage !== "" && !(Number(mileage) >= 0)) return "Mileage can't be negative.";
+  if (originalPrice !== "" && !(Number(originalPrice) > 0)) return "Enter what the car cost when new.";
+
+  return null;
+}
