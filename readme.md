@@ -7,6 +7,7 @@ A sleek, interactive web application built with React and Vite for exploring veh
 * **Dynamic Car Showcase**: Browse an interactive grid of available vehicles using reusable card components.
 * **Detailed Vehicle View**: Inspect granular specifications, descriptions, and highlights for individual cars.
 * **Maintenance Tracking**: View dedicated maintenance information and service details.
+* **Trade-In Estimator**: In the finance panel, enter your current car's year, mileage, price when new and condition to get a rough value range. Tick the box to take the low end of that range off the price, and the monthly payment, amount financed and total update to match. Your entries are remembered between visits and can be cleared at any time.
 * **Responsive CTA Section**: Sleek modern call-to-action interface for user inquiries and booking starts.
 
 ## 🛠️ Tech Stack
@@ -29,6 +30,8 @@ car/
 │   ├── CarDetails.jsx      # Detailed view panel for selected vehicle
 │   ├── DisplayCarList.jsx  # Grid/List view component for displaying vehicles
 │   ├── MaintenanceCard.jsx # Card component for maintenance details
+│   ├── TradeInEstimator.jsx # Trade-in form shown inside the finance panel
+│   ├── tradein.js          # Trade-in valuation rules and saved details
 │   ├── main.jsx            # Application entry point
 │   ├── index.css           # Global typography and base styles
 │   └── styles.css          # Custom component styles
