@@ -1,33 +1,20 @@
-// Prices live on the vehicle as display strings like "$22,000", which is what
-// the cards want to render. Anything that needs to sort, band or amortise
-// them has to get back to a number first, and both the inventory filters and
-// the finance estimate were doing it — so it lives in one place.
-export function parsePrice(price) {
-  const digits = String(price).replace(/[^0-9.]/g, "");
+// Price, mileage and power all live on the vehicle as display strings
+// ("$22,000", "18,420 mi", "450 HP"), which is what the cards want to render.
+// Anything that needs to sort, band or amortise them has to get the number
+// back out first. A string with no figure in it reads as 0.
+function parseFigure(text) {
+  const digits = String(text).replace(/[^0-9.]/g, "");
   const value = Number.parseFloat(digits);
 
   return Number.isNaN(value) ? 0 : value;
 }
 
-// Mileage lives on the vehicle the same way price does — a display string
-// like "18,420 mi" — so anything that wants to band or compare it needs the
-// number back out first.
-export function parseMileage(mileage) {
-  const digits = String(mileage).replace(/[^0-9.]/g, "");
-  const value = Number.parseFloat(digits);
+export const parsePrice = parseFigure;
+export const parseMileage = parseFigure;
 
-  return Number.isNaN(value) ? 0 : value;
-}
-
-// Power is another display string ("450 HP"). A listing that only says
-// "Performance spec" carries no figure and reads as 0, which the sort treats
-// as unknown rather than as the weakest car in stock.
-export function parsePower(power) {
-  const digits = String(power).replace(/[^0-9.]/g, "");
-  const value = Number.parseFloat(digits);
-
-  return Number.isNaN(value) ? 0 : value;
-}
+// A listing that only says "Performance spec" carries no figure and reads as
+// 0, which the sort treats as unknown rather than as the weakest car in stock.
+export const parsePower = parseFigure;
 
 export function formatMoney(amount) {
   return `$${Math.round(amount).toLocaleString("en-US")}`;
