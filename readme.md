@@ -2,7 +2,7 @@
 
 A sleek, interactive web application built with React and Vite for exploring vehicle lineups, inspecting car details, and managing maintenance information.
 
-## 🚀 Features in volce motors
+## 🚀 Features in Veloce Motors
 
 * **Dynamic Car Showcase**: Browse an interactive grid of available vehicles using reusable card components.
 * **Detailed Vehicle View**: Inspect granular specifications, descriptions, and highlights for individual cars.
@@ -23,18 +23,29 @@ A sleek, interactive web application built with React and Vite for exploring veh
 car/
 ├── public/
 ├── src/
-│   ├── assets/
-│   ├── App.css
-│   ├── App.jsx             # Main layout and section renderer
-│   ├── CarCard.jsx         # Card component for individual car items
-│   ├── CarDetails.jsx      # Detailed view panel for selected vehicle
-│   ├── DisplayCarList.jsx  # Grid/List view component for displaying vehicles
-│   ├── MaintenanceCard.jsx # Card component for maintenance details
+│   ├── App.jsx              # Main layout and section renderer
+│   ├── BookingsPanel.jsx    # Every booked test drive in one place
+│   ├── CarCard.jsx          # Card component for individual car items
+│   ├── CarDetails.jsx       # Detailed view panel for selected vehicle
+│   ├── CompareTable.jsx     # Side-by-side comparison of chosen cars
+│   ├── DisplayCarList.jsx   # Inventory grid, filters and sorting
+│   ├── FinanceCalculator.jsx # Deposit, term and APR monthly estimate
+│   ├── MaintenanceCard.jsx  # Card component for maintenance details
+│   ├── TestDriveForm.jsx    # Book a test drive slot
 │   ├── TradeInEstimator.jsx # Trade-in form shown inside the finance panel
-│   ├── tradein.js          # Trade-in valuation rules and saved details
-│   ├── main.jsx            # Application entry point
-│   ├── index.css           # Global typography and base styles
-│   └── styles.css          # Custom component styles
+│   ├── bookings.js          # Saved test drive bookings
+│   ├── notes.js             # Your own notes on each vehicle
+│   ├── pricing.js           # Price parsing and finance maths
+│   ├── recent.js            # Recently viewed vehicles
+│   ├── searches.js          # Saved searches
+│   ├── similar.js           # Similar vehicles to the one open
+│   ├── tradein.js           # Trade-in valuation rules and saved details
+│   ├── main.jsx             # Application entry point
+│   ├── App.css
+│   ├── index.css            # Global typography and base styles
+│   └── styles.css           # Custom component styles
 ├── eslint.config.js
 ├── index.html
-└── package.json
+├── package.json
+└── vite.config.js
+```
