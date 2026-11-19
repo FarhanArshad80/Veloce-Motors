@@ -1,4 +1,3 @@
-import React from "react";
 import { bookingCountdown, bookingWhen, downloadBookingCalendar } from "./bookings";
 
 // Every test drive that has been booked, in one place.

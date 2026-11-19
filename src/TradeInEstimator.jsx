@@ -1,4 +1,3 @@
-import React from "react";
 import { formatMoney } from "./pricing";
 import { CONDITIONS, EMPTY_TRADE_IN, estimateTradeIn, tradeInProblem } from "./tradein";
 

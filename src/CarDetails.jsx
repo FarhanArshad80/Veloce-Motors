@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import FinanceCalculator from "./FinanceCalculator";
 import TestDriveForm from "./TestDriveForm";
 import { bookingWhen } from "./bookings";
