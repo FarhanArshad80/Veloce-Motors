@@ -49,3 +49,24 @@ car/
 ├── package.json
 └── vite.config.js
 ```
+
+## ▶️ Getting Started
+
+```bash
+git clone https://github.com/FarhanArshad80/Veloce-Motors.git
+cd Veloce-Motors
+npm install
+npm run dev
+```
+
+Then open the URL Vite prints (usually http://localhost:5173).
+
+## 📜 Scripts
+
+| Command           | What it does                              |
+| ----------------- | ----------------------------------------- |
+| `npm run dev`     | Start the dev server with hot reload      |
+| `npm run build`   | Build for production into `dist/`         |
+| `npm run preview` | Serve the production build locally        |
+| `npm run lint`    | Run ESLint                                |
+| `npm run deploy`  | Build and publish to GitHub Pages         |
