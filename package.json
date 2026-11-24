@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://FarhanArshad80.github.io/car",
+  "homepage": "https://FarhanArshad80.github.io/Veloce-Motors",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
